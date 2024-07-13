@@ -1,0 +1,4 @@
+vi kan ta ut födelsedag, värde, ålder och namn på en spelare lätt
+position också om vi bara gör lite översättning (TeamSquadGoalkeepers_ == målis)
+
+
