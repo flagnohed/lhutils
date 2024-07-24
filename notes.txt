@@ -2,3 +2,18 @@ vi kan ta ut födelsedag, värde, ålder och namn på en spelare lätt
 position också om vi bara gör lite översättning (TeamSquadGoalkeepers_ == målis)
 
 
+scrapea hela transferlistan, kolla "potentiellt värde" (alltså predictat)
+
+gör en funktion som sorterar bort de som är under threshold
+den funktionen bör räkna på 
+
+17 300k/w 	
+18-19 400k/w	
+20-23 500k/w
+ignorera >23
+
+
+
+
+
+
