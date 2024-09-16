@@ -36,9 +36,10 @@ def get_num_remaining_trainings(bday, cur_date):
 	""" first training inclusive if current day < 7, 
 		and last training exclusive if bday < 7. """
 	num_weeks = 13
-	count_first = int(cur_date[1] < 7)  # training this week hasn't happened 
-	dont_count_last = int(bday[1] < 7)
-	return (bday[0] - cur_date[0] + count_first - dont_count_last) % 13
+	num_days = 6
+	count_first = int(cur_date[1] < num_days)  # training this week hasn't happened 
+	dont_count_last = int(bday[1] < num_days)
+	return (bday[0] - cur_date[0] + count_first - dont_count_last) % num_weeks
 
 			
 def pretty_print(num):
@@ -70,13 +71,13 @@ def predict_player_value(players, cur_date):
 		name = p["name"]
 		age = p["age"]
 		value = p["value"]
-		startbid = p["startbid"]
+		# startbid = p["startbid"]
 		print("==========")
 		print(f"{name}, {age} år, {pretty_print(value)} kr")
 		print(f"300k/w: {pretty_print(value + rem_trainings * 300000)} kr")
 		print(f"400k/w: {pretty_print(value + rem_trainings * 400000)} kr")
 		print(f"500k/w: {pretty_print(value + rem_trainings * 500000)} kr")
-		print(f"Utgångsbud: {startbid}")
+		# print(f"Utgångsbud: {startbid}")
 
 def parse_roster (soup):
 	""" Given the HTML page of the roster, return a list
