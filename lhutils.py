@@ -6,16 +6,6 @@ ROSTER_FILE = "arnoroster.html"
 TRANSFER_SEARCH_FILE = "transfers.html"
 
 
-def calc_best_lineup(opp_lineup):
-	"""
-	Calculates the 'best' lineup given the opponents
-	lineup. The best in this case is 
-	where your team's first line plays
-	their worst line the most.
-	"""
-	pass
-
-
 def calc_advanced_stats (game_file):
 	"""
 	Calculates PDO, corsi, icetime, 
