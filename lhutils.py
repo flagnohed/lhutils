@@ -4,14 +4,9 @@ import sys
 
 # -----------------------------------------------------------------------------------------
 #  Filenames
-FILE_ROSTER: str = "html/arnoroster.html"
+FILE_ROSTER: str = "html/roster.html"
 FILE_TRANSFER: str = "html/transfers.html"
 FILE_PLAYER: str = "html/player.html"
-
-#  Global variables which tells us which state we are in. 
-is_player: bool = False
-is_roster: bool = False
-is_transfer: bool = False
 
 # Constants
 MAX_WEEKS = 13
@@ -43,7 +38,7 @@ def get_current_date(soup: BeautifulSoup) -> list:
 
 def get_num_remaining_trainings(bweek: int, bday: int, week: int, day: int):
 	
-	wdiff = (week - bweek) % 13	 # Get the difference in weeks (base amount of trainings)
+	wdiff = (bweek - week) % 13	 # Get the difference in weeks (base amount of trainings)
 	
 	dose_reset: bool = day == 7		# Training reset happens Saturday 00:10 (day 7).
 	last_training: bool = bday == 7	# If born day <7, will turn older before dose reset.
@@ -188,11 +183,15 @@ def print_usage(help: bool) -> None:
 # -----------------------------------------------------------------------------------------
 
 def is_flag(param: str) -> bool:
-	return param in ["-h, --help, -p, --player, -r, --roster, t, --transfer"]
+	return param in ["-h", "--help", "-p", "--player", "-r", "--roster", "-t", "--transfer"]
 
 # -----------------------------------------------------------------------------------------
 
 def main():
+	#  Global variables which tells us which state we are in. 
+	player: bool = False
+	roster: bool = False
+	transfer: bool = False
 	# Check for invalid number of arguments. 
 	if len(sys.argv) != 2:
 		print_usage(True)	
@@ -202,16 +201,18 @@ def main():
 	param: str = sys.argv[1]
 	flag: bool = is_flag(param)
 	if not flag or param == "-h" or param == "--help":
+		print("help")
 		print_usage(flag)
 		exit()
 
 	#  Determine what type of page we are working with.
 	if param == "-p" or param == "--player":
 		filename = FILE_PLAYER
-		is_player = True
+		player = True
 	elif param == "-r" or param == "--roster":
+		print("roster")
 		filename = FILE_ROSTER
-		is_roster = True
+		roster = True
 	else:
 		#  Must be a transfer page.
 		filename = FILE_TRANSFER 
@@ -220,10 +221,10 @@ def main():
 	soup = BeautifulSoup(file, "html.parser")
 
 	# Get players as a list of dicts.
-	if is_player:
+	if player:
 		print("Not implemented yet.")
 		exit()
-	elif is_roster:
+	elif roster:
 		players = parse_roster(soup)
 	else:
 		players = parse_transfers(soup)
