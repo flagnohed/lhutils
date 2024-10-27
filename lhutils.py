@@ -1,10 +1,13 @@
+# ---------------------------------------------------------------------------------------
+
+import json
 import unicodedata
 import sys
 
 from bs4 import BeautifulSoup, ResultSet
 
-
 # ---------------------------------------------------------------------------------------
+
 #  Filenames
 FILE_ROSTER: str = "html/roster.html"
 FILE_TRANSFER: str = "html/transfers.html"
@@ -14,8 +17,14 @@ FILE_PLAYER: str = "html/player.html"
 MAX_WEEKS = 13
 MAX_DAYS = 7
 
+# Global state variables
+development = False
+player = False
+transfer = False
+roster = False
+
 # ---------------------------------------------------------------------------------------
-# Classes
+
 class Player:
 	def __init__(self):
 		self.age: int = 0
@@ -24,7 +33,14 @@ class Player:
 		self.startbid: int = 0	
 		self.value: int = 0
 		self.name: str = ""
-		self.position: str = ""  # Save pos as str for print (only thing its used for)
+		self.position: str = ""
+		self.val_dev: list[int] = []	 # List of value developments (400k, 270k, ...)
+		self.attr_dev: list[int] = []	 # List of attribute developments (3, 4, 5, ...)
+		self.attr_types: list[str] = []  # List of attribute types (Agg, För, Mål, ...)
+		self.doses: list[str] = []		 # Training dosage (L, M, H)
+	
+	def write_to_json(self):
+		pass
 
 # ---------------------------------------------------------------------------------------
 
@@ -67,6 +83,7 @@ def filter_players(soup: BeautifulSoup, players: list[Player]) -> list[Player]:
 	return filtered_players
 			
 # ---------------------------------------------------------------------------------------
+
 """
 	Gets the current date in game [week 1-13, day 1-7].
 """
@@ -88,6 +105,7 @@ def get_num_remaining_trainings(bweek: int, bday: int, week: int, day: int) -> i
 	return wdiff + int(last_training) - int(dose_reset)
 
 # ---------------------------------------------------------------------------------------
+
 """ 
 	Takes an integer, converts it to a string.
 	Makes it easier to read large numbers like 5000000 --> 5 000 000. 
@@ -105,6 +123,14 @@ def large_num_to_str(num: int) -> str:
 			pretty_str += " "
 	
 	return pretty_str[::-1]
+
+
+def parse_development(soup: BeautifulSoup):
+	# Idea is to display value + ability change over time. 
+	# This would require update every saturday 
+	# (copy paste html of "träningsutveckling" into this program)
+
+    pass
 
 # ---------------------------------------------------------------------------------------
 
@@ -229,12 +255,11 @@ def is_flag(param: str) -> bool:
 	return param in ["-h", "--help", "-p", "--player", "-r", "--roster", "-t", "--transfer"]
 
 # ---------------------------------------------------------------------------------------
-
+"""
+	Todo: make global state variables actually global.
+		Then, we could merge the parser functions.
+"""
 def main():
-	#  Global variables which tells us which state we are in. 
-	player: bool = False
-	roster: bool = False
-	transfer: bool = False
 	# Check for invalid number of arguments. 
 	if len(sys.argv) != 2:
 		print_usage(True)	
@@ -252,7 +277,6 @@ def main():
 		filename = FILE_PLAYER
 		player = True
 	elif param == "-r" or param == "--roster":
-		print("roster")
 		filename = FILE_ROSTER
 		roster = True
 	else:
@@ -280,4 +304,3 @@ def main():
 
 if __name__ == "__main__":
 	main()
-
