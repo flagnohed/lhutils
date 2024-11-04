@@ -41,6 +41,12 @@ PVT_DICT: dict[int, tuple[int, int]] = {17: (4500000, 300000), 18: (10000000, 40
 										19: (15000000, 450000), 20: (20000000, 500000), 
 										21: (25000000, 500000), 22: (30000000, 500000)}
 
+ID2POS_DICT: dict[str, str] = {
+	"ucTeamSquadGoalkeepers" : "GK",
+	"ucTeamSquadDefenders" : "DEF",
+	"ucTeamSquadForwards" : "FWD"
+	}
+
 # ---------------------------------------------------------------------------------------
 # Global variables
 # ---------------------------------------------------------------------------------------
@@ -145,56 +151,38 @@ def parse_development(soup: BeautifulSoup):
 
 # ---------------------------------------------------------------------------------------
 
+def numstr(s: str) -> str:
+	return ''.join([c for c in s if c.isdigit()])
+
+# ---------------------------------------------------------------------------------------
 
 def parse_roster(soup: BeautifulSoup) -> list[Player]:
-	
-	def is_player_anchor(a: PageElement) -> bool:
-		return str(a).startswith('<a href="/Pages/Player/Player.aspx?Player_Id=') \
-			and '\n' in str(a)
-
-	def parse_anchor(a: PageElement) -> Player:
-		#  Black magic
-		a = list(a.attrs.values())
-		pos = a[0].split('_')[3][11:-1]		  # ucTeamSquadGoalkeepers
-		rest = a[1].split('\n')
-		name, age = rest[0].split(", ")	  # Felix Zetterholt, 17 år
-		age = int(age[:2])
-		b = rest[4].split(": ")[1].split(' ')
-		#  End of black magic
-		player = Player()
-		player.age = age
-		player.bday = int(b[3])
-		player.bweek = int(b[1][:-1])	# Dont ask
-		player.name = name
-		player.position = pos
-		return player		
-
-	def parse_value(data_cell: PageElement) -> int:
-		return int(''.join([i for i in data_cell.string if i.isnumeric()]))
-
-
-	#  All info except value per player
-	anchors: ResultSet[PageElement] = soup.find_all('a')  
-	#  Value per player
-	data_cells: ResultSet[PageElement] = soup.find_all("td", {"class": "right value"})
+	values: ResultSet[PageElement] = soup.find_all("td", {"class": "right value"})
 	players: list[Player] = []
-	#  Need two for-loops since anchors is larger than tds
-	#  Parse player info
-	for i in range(len(anchors)):
-		if is_player_anchor(anchors[i]):
-			player: Player = parse_anchor(anchors[i])
-			players += [player]
-	
-	# Parse player value
-	for i in range (len(players)):
-		players[i].value = parse_value(data_cells[i])
+
+	for anchor in soup.find_all('a'):
+		if not anchor["href"].startswith("/Pages/Player/Player.aspx?Player_Id="):
+			continue
+
+		player: Player = Player()
+		title_list: list[str] = anchor["title"].split('\n')
+		birthdate = numstr(title_list[4])
+
+		player.name = anchor.get_text()
+		player.position = ID2POS_DICT[anchor["id"].split("_")[3]]
+		player.age = int(numstr(title_list[0]))
+		player.bday = int(birthdate[-1])
+		player.bweek = int(birthdate[:-1])
+		player.value = int(numstr(values[len(players)].string))
+
+		players += [player]
 
 	return players
 
 # ---------------------------------------------------------------------------------------
 
 def parse_transfers(soup: BeautifulSoup) -> list[Player]:
-	
+	# todo: write this more like parse_roster
 	name_age_raw: ResultSet[PageElement] = soup.find_all("div", {"class":"ts_collapsed_1"})
 	players: list[Player] = []
 
@@ -258,7 +246,7 @@ def parse(filename: str, short_flag: str) -> list[Player]:
 
 # ---------------------------------------------------------------------------------------
 
-def print_value_predictions(players: list[Player]):
+def print_value_predictions(players: list[Player]) -> None:
 	""" Predicts the value of a player at the end of 
 		the given age (after last training). """ 
 
@@ -268,8 +256,9 @@ def print_value_predictions(players: list[Player]):
 
 	for player in players:
 		rem_trainings: int = player.get_trainings_left()
-		print(20 * "=")
-		print(f"{player.name}, {player.age} år. Värde: {num2str(player.value)} kr")
+		print(20 * "-")
+		print(f"{player.name}, {player.position}, {player.age}")
+		print(f"Värde:	{num2str(player.value)} kr")
 		print(f"300k/w: {num2str(player.value + rem_trainings * 300000)} kr")
 		print(f"400k/w: {num2str(player.value + rem_trainings * 400000)} kr")
 		print(f"500k/w: {num2str(player.value + rem_trainings * 500000)} kr")
