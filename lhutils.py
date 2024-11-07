@@ -63,12 +63,12 @@ class Player:
 		self.age: int = 0
 		self.bday: int = 0	# [1, 7]
 		self.bweek: int = 0	# [1, 13]
-		self.startbid: int = 0	
+		# self.startbid: int = 0	
 		self.value: int = 0
 
 		self.name: str = ""
 		self.position: str = ""
-
+		self.current_bid: str = ""
 		self.dev_entries: list[DevEntry] = []	 
 		
 	
@@ -141,17 +141,13 @@ def num2str(num: int) -> str:
 
 # ---------------------------------------------------------------------------------------
 
-def parse_development(soup: BeautifulSoup):
-	# Idea is to display value + ability change over time. 
-	# This would require update every saturday 
-	# (copy paste html of "träningsutveckling" into this program)
-
-	row_entries: ResultSet[PageElement] = soup.find_all("tr", {"class":"rowMarker"})
-	test = row_entries[0]
+def is_player_anchor(anchor: PageElement):
+	return anchor["href"].startswith("/Pages/Player/Player.aspx?Player_Id=")
 
 # ---------------------------------------------------------------------------------------
 
 def numstr(s: str) -> str:
+	""" Extract numbers from a string and return those numbers as a new string. """
 	return ''.join([c for c in s if c.isdigit()])
 
 # ---------------------------------------------------------------------------------------
@@ -161,7 +157,7 @@ def parse_roster(soup: BeautifulSoup) -> list[Player]:
 	players: list[Player] = []
 
 	for anchor in soup.find_all('a'):
-		if not anchor["href"].startswith("/Pages/Player/Player.aspx?Player_Id="):
+		if not is_player_anchor(anchor):
 			continue
 
 		player: Player = Player()
@@ -182,34 +178,37 @@ def parse_roster(soup: BeautifulSoup) -> list[Player]:
 # ---------------------------------------------------------------------------------------
 
 def parse_transfers(soup: BeautifulSoup) -> list[Player]:
-	# todo: write this more like parse_roster
-	name_age_raw: ResultSet[PageElement] = soup.find_all("div", {"class":"ts_collapsed_1"})
-	players: list[Player] = []
-
-	for item in name_age_raw:
-		player: Player = Player()
-		player.name = item.contents[1].text
-		player.age = int(item.contents[3].text[:2])
-
-		bdate: list[int] = [int(x) for x in item.contents[4] if x.isnumeric() and x != '0']
-		if (len(bdate) == 3):
-			# Ugly workaround for when week number is double digit
-			bdate = [int(str(bdate[0]) + str(bdate[1])), int(bdate[2])]
-		player.bweek, player.bday = bdate
-		player.position = item.contents[4].split(", ")[1]
-		
-		players += [player]
 	
-	value_raw: ResultSet[PageElement] = soup.find_all("div", {"class":"ts_collapsed_3"} )
-	for i in range(len(value_raw)):
-		val_str: str = value_raw[i].contents[0].replace("\xa0", "")
-		num_str: str = ''.join([a for a in val_str if a.isnumeric()])
-		players[i].value = int(num_str)
+	# Should probably parse div.get_text() instead of the title.
+	# That way we would also get the position. 
+	# (todo)
+	players: list[Player] = []
+	div: PageElement = None
 
-	starting_bids: list[int] = [x.contents[1] for x 
-				  		in soup.find_all("div", {"class":"ts_expanded_box2row_bottom"})]
-	for i in range(len(starting_bids)):
-		players[i].startbid = starting_bids[i]
+	information: ResultSet = soup.find_all("div", {"class":"ts_collapsed_1"})
+	values: ResultSet = soup.find_all("div", {"class":"ts_collapsed_3"})
+	current_bids: ResultSet = soup.find_all("div", {"class":"ts_collapsed_5"})
+
+	# Name, age, birthweek and birthday
+	for i, div in enumerate(information):
+		# Info: NAME, AGE år (Vecka BWEEK, Dag BDAY) 
+		player: Player = Player()
+		info: str = div["title"].split('\n')[0]
+		print(info)
+		nstr: str = numstr(info)
+		player.name = info.split(',')[0]
+		try:
+			player.age = int(nstr[:2])  	# First two digits of info is age,
+			player.bday = int(nstr[-1]) 	# last digit is bday,
+			player.bweek = int(nstr[2:-1])	# and the rest is bweek.
+		except ValueError:
+			print(f"Skipped guy with weird name at {i + 1} in transferlist.")
+			continue
+		
+		player.value = int(numstr(''.join(values[i].stripped_strings)))
+		player.current_bid = ''.join(current_bids[i].stripped_strings)
+
+		players += [player]
 
 	return players
 
@@ -225,13 +224,14 @@ def parse(filename: str, short_flag: str) -> list[Player]:
 
 	# We can trust that short_flag is a valid flag here.
 	if short_flag == "-d":
-		players = parse_development(soup)
+		print("Not implemented yet!")
+		exit()
 	elif short_flag == "-p":
-		print("Player parsing not implemented yet!")
+		print("Not implemented yet!")
 		exit()
 	elif short_flag == "-r":
 		players = parse_roster(soup)
-	elif short_flag == "t":
+	elif short_flag == "-t":
 		players = parse_transfers(soup)
 	else:
 		print("This should not happen.")
@@ -257,7 +257,7 @@ def print_value_predictions(players: list[Player]) -> None:
 	for player in players:
 		rem_trainings: int = player.get_trainings_left()
 		print(20 * "-")
-		print(f"{player.name}, {player.position}, {player.age}")
+		print(f"{player.name}, {player.position}, {player.age}, {player.current_bid}")
 		print(f"Värde:	{num2str(player.value)} kr")
 		print(f"300k/w: {num2str(player.value + rem_trainings * 300000)} kr")
 		print(f"400k/w: {num2str(player.value + rem_trainings * 400000)} kr")
@@ -329,7 +329,7 @@ def main():
 		else:
 			print_usage(False)
 			exit()
-		
+
 	players = filter_players(players, age_min, age_max) if filter else players
 	print_value_predictions(players)
 
