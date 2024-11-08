@@ -194,7 +194,6 @@ def parse_transfers(soup: BeautifulSoup) -> list[Player]:
 		# Info: NAME, AGE år (Vecka BWEEK, Dag BDAY) 
 		player: Player = Player()
 		info: str = div["title"].split('\n')[0]
-		print(info)
 		nstr: str = numstr(info)
 		player.name = info.split(',')[0]
 		try:
@@ -270,21 +269,25 @@ def print_usage(help: bool) -> None:
 	""" Prints usage information. Called if -h/--help flag present 
 		or usage error detected. """
 	
-	header: str = "Livehockey utils" if help else "Usage error"
-	print(f"******** {header} ********")
-	print("Usage: python3 lhutils.py [option]")
-	print("[option]: ")
-	print("	-h, --help")
-	print("	-p, --player")
-	print("	-r, --roster")
-	print("	-t, --transfer")
+	print()
+	print("Usage: python3 lhutils.py [options]")
+	print("-h, --help")
+	print("    Prints this information and quits.")
+	print("-r, --roster")
+	print("    Parse a team roster. Paste HTML into html/roster.html.")
+	print("-t, --transfer")
+	print("    Parse transfer list. Paste HTML into html/transfers.html.")
+	print("-f, --filter LOW,MAX")
+	print("    Only show players with age between (including) LOW and MAX years.")
+	print("    If no age interval is provided, default values are used.")
+	print(f"    Current default values: MIN = {FILTER_DEFAULT_MIN}, MAX = {FILTER_DEFAULT_MAX}")
 
 # ---------------------------------------------------------------------------------------
 
 """ Determines if argument PARAM is a valid flag. """
 def is_flag(param: str) -> bool:
-	return param in ["-h", "--help", "-p", "--player", "-r", "--roster", "-t", 
-				  	 "--transfer", "-d", "--development"]
+	return param in ["-h", "--help", "-r", "--roster", "-t", 
+				  	 "--transfer", "-f", "--filter"]
 
 # ---------------------------------------------------------------------------------------
 
