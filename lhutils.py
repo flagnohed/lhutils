@@ -225,13 +225,7 @@ def parse(filename: str, short_flag: str) -> list[Player]:
 	week, day = get_current_date(soup)
 
 	# We can trust that short_flag is a valid flag here.
-	if short_flag == "-d":
-		print("Not implemented yet!")
-		exit()
-	elif short_flag == "-p":
-		print("Not implemented yet!")
-		exit()
-	elif short_flag == "-r":
+	if short_flag == "-r":
 		players = parse_roster(soup)
 	elif short_flag == "-t":
 		players = parse_transfers(soup)
@@ -309,11 +303,6 @@ def main():
 		if args[i] in ("-h", "--help"):
 			print_usage(True)
 			exit()
-
-		if args[i] in ("-d", "--development"):
-			players = parse(FILE_DEVELOPMENT, "-d")
-		elif args[i] in ("-p", "--player"):
-			players = parse(FILE_PLAYER, "-p")
 		elif args[i] in ("-r", "--roster"):
 			players = parse(FILE_ROSTER, "-r")
 		elif args[i] in ("-t", "--transfer"):
