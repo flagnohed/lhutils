@@ -41,11 +41,9 @@ PVT_DICT: dict[int, tuple[int, int]] = {17: (4500000, 300000), 18: (10000000, 40
 										19: (15000000, 450000), 20: (20000000, 500000), 
 										21: (25000000, 500000), 22: (30000000, 500000)}
 
-ID2POS_DICT: dict[str, str] = {
-	"ucTeamSquadGoalkeepers" : "GK",
-	"ucTeamSquadDefenders" : "DEF",
-	"ucTeamSquadForwards" : "FWD"
-	}
+ID2POS_DICT: dict[str, str] = {"ucTeamSquadGoalkeepers" : "GK",
+							   "ucTeamSquadDefenders" : "DEF",
+							   "ucTeamSquadForwards" : "FWD"}
 
 # ---------------------------------------------------------------------------------------
 # Global variables
@@ -221,6 +219,11 @@ def parse(filename: str, short_flag: str) -> list[Player]:
 	soup: BeautifulSoup = BeautifulSoup(file, "html.parser")
 	players: list[Player] = []
 
+	# Parse current in-game date.
+	global week
+	global day
+	week, day = get_current_date(soup)
+
 	# We can trust that short_flag is a valid flag here.
 	if short_flag == "-d":
 		print("Not implemented yet!")
@@ -236,11 +239,6 @@ def parse(filename: str, short_flag: str) -> list[Player]:
 		print("This should not happen.")
 		exit()
 	
-	# Parse current in-game date.
-	global week
-	global day
-	week, day = get_current_date(soup)
-
 	return players
 
 # ---------------------------------------------------------------------------------------
@@ -256,7 +254,7 @@ def print_value_predictions(players: list[Player]) -> None:
 	for player in players:
 		rem_trainings: int = player.get_trainings_left()
 		print(20 * "-")
-		print(f"{player.name}, {player.position}, {player.age}, {player.current_bid}")
+		print(f"{player.name}, {player.age}, {player.current_bid}")
 		print(f"Värde:	{num2str(player.value)} kr")
 		print(f"300k/w: {num2str(player.value + rem_trainings * 300000)} kr")
 		print(f"400k/w: {num2str(player.value + rem_trainings * 400000)} kr")
