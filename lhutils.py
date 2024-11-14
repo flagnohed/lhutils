@@ -6,6 +6,7 @@ import json
 import re
 import sys
 import unicodedata
+import arena
 
 
 from bs4 import BeautifulSoup, ResultSet, PageElement
@@ -278,6 +279,10 @@ def print_usage() -> None:
 	print("    Only show players with age between (including) LOW and MAX years.")
 	print("    If no age interval is provided, default values are used.")
 	print(f"    Current default values: MIN = {FILTER_DEFAULT_MIN}, MAX = {FILTER_DEFAULT_MAX}")
+	print("-a, --arena CAPACITY NEW_CAPACITY")
+	print("    Calculate how much it would cost to change capacity (build/demolish).")
+	print("    Also prints how many weeks it would take before arena being profitable,")
+	print("    as well as how much difference it will be in terms of rent.")
 
 # ---------------------------------------------------------------------------------------
 # Main function
@@ -304,7 +309,7 @@ def main():
 			players = parse(FILE_ROSTER, "-r")
 		elif args[i] in ("-t", "--transfer"):
 			players = parse(FILE_TRANSFER, "-t")
-		elif args[i] in ["-f", "--filter"]:
+		elif args[i] in ("-f", "--filter"):
 			filter = True
 			# Filter flag can be succeeded by age range (comma separated)
 			# If not we just use the default values. This also applies
@@ -312,6 +317,15 @@ def main():
 			if i + 1 < len(args) and re.match("\d\d,[0-9]+", args[i + 1]):
 				i = i + 1
 				age_min, age_max = [int(x) for x in args[i].split(',')]
+		elif args[i] in ("-a", "--arena"):
+			if i + 2 < len(args) and args[i + 1].isnumeric() and args[i + 2].isnumeric():
+				arena.print_test_case(int(args[i + 1]), int(args[i + 2]))
+				# Arena application has finished here, and since we were invoked 
+				# with '-a', that is also true for the main application.
+			else:
+				print_usage()
+			
+			exit()
 
 		else:
 			print_usage()

@@ -90,7 +90,7 @@ def print_test_case(old_arena_size, new_arena_size) -> None:
     build_cost: int = 0
     demolition_cost: int = 0
     print("----------")
-    
+
     if new_arena_size == old_arena_size:
         print("Stupid test, ingore.")
         return
@@ -120,20 +120,3 @@ def print_test_case(old_arena_size, new_arena_size) -> None:
         print(f"{weeks_until_profit} weeks before making profit")
     else:
         print(f"Rent increase: {new_rent - old_rent}")
-
-
-def print_usage():
-    print("Usage: python3 arena.py [OLD_SIZE] [NEW_SIZE]")
-
-
-def main():
-    old_arena_size = 50000
-    new_arena_sizes = (40000, 35000, 30000)
-    for nas in new_arena_sizes:
-        print_test_case(old_arena_size, nas)
-
-
-if __name__ == "__main__":
-    main()
-    
-
