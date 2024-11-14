@@ -91,6 +91,9 @@ def filter_players(players: list[Player],
 			# Get threshold and weekly increase for the relevant age.
 			t, w = PVT_DICT[player.age]
 			fplayers += [player] if player.value + trainings_left * w >= t else []
+		elif player.age == 17 and trainings_left >= MAX_WEEKS - 1 and \
+				player.value >= 900000:
+			fplayers += [player]
 	
 	return fplayers
 			
@@ -171,7 +174,7 @@ def parse_transfers(soup: BeautifulSoup) -> list[Player]:
 	
 	# Should probably parse div.get_text() instead of the title.
 	# That way we would also get the position. 
-	# (todo)
+
 	players: list[Player] = []
 	div: PageElement = None
 
@@ -179,22 +182,15 @@ def parse_transfers(soup: BeautifulSoup) -> list[Player]:
 	values: ResultSet = soup.find_all("div", {"class":"ts_collapsed_3"})
 	current_bids: ResultSet = soup.find_all("div", {"class":"ts_collapsed_5"})
 
-	# Name, age, birthweek and birthday
 	for i, div in enumerate(information):
-		# Info: NAME, AGE år (Vecka BWEEK, Dag BDAY) 
 		player: Player = Player()
 		info: str = div["title"].split('\n')[0]
 		nstr: str = numstr(info)
+
 		player.name = info.split(',')[0]
-		try:
-			player.age = int(nstr[:2])  	# First two digits of info is age,
-			player.bday = int(nstr[-1]) 	# last digit is bday,
-			player.bweek = int(nstr[2:-1])	# and the rest is bweek.
-		except ValueError:
-			# Because of Windows. Bill Gates is a whore!
-			print(f"Skipped guy with weird name at {i + 1} in transferlist.")
-			continue
-		
+		player.age = int(nstr[:2])  	# First two digits of info is age,
+		player.bday = int(nstr[-1]) 	# last digit is bday,
+		player.bweek = int(nstr[2:-1])	# and the rest is bweek.
 		player.value = int(numstr(''.join(values[i].stripped_strings)))
 		player.current_bid = ''.join(current_bids[i].stripped_strings)
 		player.idx = i + 1
