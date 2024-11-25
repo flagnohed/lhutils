@@ -182,6 +182,26 @@ def parse_roster(soup: BeautifulSoup) -> list[Player]:
 
 # ---------------------------------------------------------------------------------------
 
+""" Strips S of trailing and leading whitespace. """
+def wstext2int(s: str) -> str:
+	i1: int = 0
+	i2: int = 0
+	begun: bool = False
+	for i in range(len(s)):
+		if not begun and (s[i] == '(' or s[i].isdigit()):
+			# Indicate that we are looking for the end of the expression
+			# (i.e. closed parenthesis or digit)
+			begun = True
+			i1 = i
+
+		elif begun and (s[i] in ['\n', '\t'] or \
+			i + 1 < len(s) and s[i] == s[i + 1] == ' '):
+			i2 = i
+			break
+
+	return s[i1:i2]	
+	
+
 def parse_transfers(soup: BeautifulSoup) -> list[Player]:
 	
 	# Should probably parse div.get_text() instead of the title.
@@ -208,9 +228,8 @@ def parse_transfers(soup: BeautifulSoup) -> list[Player]:
 		player.bweek = int(bdate_str[:-1])	# and the rest is bweek.
 
 		player.position = info[4].split(", ")[1]
-
-		player.value = int(numstr(''.join(values[i].stripped_strings)))
-		player.current_bid = ''.join(current_bids[i].stripped_strings)
+		player.value = int(numstr(values[i].get_text()))
+		player.current_bid = wstext2int(current_bids[i].get_text())
 
 		player.idx = i + 1
 		players += [player]
@@ -338,8 +357,6 @@ def main():
 		elif args[i] in ("-a", "--arena"):
 			if i + 2 < len(args) and args[i + 1].isnumeric() and args[i + 2].isnumeric():
 				arena.print_test_case(int(args[i + 1]), int(args[i + 2]))
-				# Arena application has finished here, and since we were invoked 
-				# with '-a', that is also true for the main application.
 			else:
 				print_usage()
 			
