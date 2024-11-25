@@ -38,7 +38,7 @@ FILTER_DEFAULT_MAX: int = 22
 # | 21  | 30m  | 700k			 |
 # | 22  | 40m  | 700k			 |
 # |-----|------|-----------------|
-PVT_DICT: dict[int, tuple[int, int]] = {17: (5000000, 300000),  18: (11000000, 400000), 
+PVT_DICT: dict[int, tuple[int, int]] = {17: (5200000, 300000),  18: (11000000, 400000), 
 										19: (16000000, 500000), 20: (20000000, 600000), 
 										21: (30000000, 700000), 22: (40000000, 700000)}
 
@@ -71,10 +71,14 @@ class Player:
 	def get_trainings_left(self) -> int:
 		""" Gets the number of training occasions remaining 
 			before birthday. """
+		# print(f"idx {self.idx}: wdiff = {self.bweek} - {week}")
 		wdiff: int = (self.bweek - week) % 13
+		if wdiff < 0:
+			wdiff += 13
+		
 		dose_reset: bool = day == 7	
 		last_training: bool = self.bday == 7		
-											
+		# print(f"{wdiff} + {int(last_training)} - {int(dose_reset)}")									
 		return wdiff + int(last_training) - int(dose_reset)
 
 # ---------------------------------------------------------------------------------------
@@ -91,11 +95,12 @@ def filter_players(players: list[Player],
 		if player.age in PVT_DICT.keys() and age_min <= player.age <= age_max:
 			# Get threshold and weekly increase for the relevant age.
 			t, w = PVT_DICT[player.age]
+			# print(player.name, player.value + trainings_left * w, t, trainings_left)
 			fplayers += [player] if player.value + trainings_left * w >= t else []
 		elif player.age == 17 and trainings_left >= MAX_WEEKS - 1 and \
 				player.value >= 900000:
 			fplayers += [player]
-	
+
 	return fplayers
 			
 # ---------------------------------------------------------------------------------------
@@ -149,13 +154,19 @@ def is_flag(param: str) -> bool:
 def parse_roster(soup: BeautifulSoup) -> list[Player]:
 	values: ResultSet[PageElement] = soup.find_all("td", {"class": "right value"})
 	players: list[Player] = []
-
+	title: str = ""
 	for anchor in soup.find_all('a'):
+
 		if not is_player_anchor(anchor):
 			continue
 
+		try:
+			title = anchor["title"]
+		except KeyError:
+			continue
+
 		player: Player = Player()
-		title_list: list[str] = anchor["title"].split('\n')
+		title_list: list[str] = title.split('\n')
 		birthdate = numstr(title_list[4])
 
 		player.name = anchor.get_text()
@@ -185,15 +196,22 @@ def parse_transfers(soup: BeautifulSoup) -> list[Player]:
 
 	for i, div in enumerate(information):
 		player: Player = Player()
-		info: str = div["title"].split('\n')[0]
-		nstr: str = numstr(info)
+		info: list[str] = [s for s in div.stripped_strings]
 
-		player.name = info.split(',')[0]
-		player.age = int(nstr[:2])  	# First two digits of info is age,
-		player.bday = int(nstr[-1]) 	# last digit is bday,
-		player.bweek = int(nstr[2:-1])	# and the rest is bweek.
+		# info has kind of a weird structure:
+		# [idx, player_name, ',', 'x år', '(W-D), position, shoots]
+
+		player.name = info[1]
+		player.age = int(numstr(info[3])) 
+		bdate_str: str = numstr(info[4])
+		player.bday = int(bdate_str[-1]) 	# last digit is bday,
+		player.bweek = int(bdate_str[:-1])	# and the rest is bweek.
+
+		player.position = info[4].split(", ")[1]
+
 		player.value = int(numstr(''.join(values[i].stripped_strings)))
 		player.current_bid = ''.join(current_bids[i].stripped_strings)
+
 		player.idx = i + 1
 		players += [player]
 
@@ -244,7 +262,7 @@ def print_value_predictions(players: list[Player]) -> None:
 
 		if player.idx:
 			# This means we have parsed the transfer list
-			headline = f"{player.idx}. {player.name}, {player.age}, {player.current_bid}"
+			headline = f"{player.idx}. {player.name}, {player.age}, {player.current_bid}, {player.position}"
 		else:
 			# At the moment this can only be roster
 			headline = f"{player.name}, {player.age}, {player.position}"
@@ -331,6 +349,9 @@ def main():
 			print_usage()
 			exit()
 
+	# for i in range(len(players)):
+		# print(f"{i}. {players[i].name}")
+	
 	players = filter_players(players, age_min, age_max) if filter else players
 	print_value_predictions(players)
 

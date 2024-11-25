@@ -3,11 +3,9 @@ CUR_SHORT: int = 12500
 CUR_LONG: int = 30000
 CUR_VIP: int = 7500
 CUR_TOTAL: int = CUR_SHORT + CUR_LONG + CUR_VIP
-
 SHORT_INTERVAL: int = 2500
 LONG_INTERVAL: int = 5000
 VIP_INTERVAL: int = 500
-
 CUR_RENT: int = 655060
 
 COSTS_PER_SEAT: dict[int, tuple[int, int, int]] = {
@@ -19,13 +17,6 @@ COSTS_PER_SEAT: dict[int, tuple[int, int, int]] = {
     5: (63, 106, 209)
     # We don't care about div 6, impossible to be that bad.
 }
-
-
-def print_percentages(short: int, long: int, vip: int):
-    print(f"Kortsida: {short / CUR_TOTAL}")
-    print(f"Långsida: {long / CUR_TOTAL}")
-    print(f"VIP:      {vip / CUR_TOTAL}")
-
 
 
 def calculate_rent(arena_size: int) -> int:
@@ -84,6 +75,12 @@ def calculate_income(arena_size: int, division: int) -> int:
     income = short_seats * cps_short + long_seats * cps_long + vip_seats * cps_vip
 
     return income
+
+
+def print_percentages(short: int, long: int, vip: int):
+    print(f"Kortsida: {short / CUR_TOTAL}")
+    print(f"Långsida: {long / CUR_TOTAL}")
+    print(f"VIP:      {vip / CUR_TOTAL}")
 
 
 def print_test_case(old_arena_size, new_arena_size) -> None:
