@@ -1,9 +1,9 @@
-# ---------------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # TODO:
 # * fix bug with new players around 900k not showing with filter
-# ---------------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Imports
-# ---------------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 from arena import print_test_case
 from bs4 import BeautifulSoup, ResultSet, PageElement
@@ -15,7 +15,7 @@ from sys import argv
 from termcolor import colored
 from unicodedata import normalize
 
-# ------------------------------------------------------------------------------
+# 
 # Constants
 # ------------------------------------------------------------------------------
 
@@ -71,10 +71,10 @@ day: int = 0
 class Player:
     def __init__(self):
         self.age: int = 0
-        self.bday: int = 0					  # [1, 7]
-        self.bweek: int = 0					  # [1, 13]
+        self.bday: int = 0			  # [1, 7]
+        self.bweek: int = 0			  # [1, 13]
         self.value: int = 0
-        self.idx: int = 0   				  # 1-based index for transfers.
+        self.idx: int = 0   		  # 1-based index for transfers.
         self.name: str = ""
         self.pos: str = ""
         self.bid: str = ""			  # Starting bid in parenthesis if no bids. 	 
@@ -82,14 +82,12 @@ class Player:
     def get_trainings_left(self) -> int:
         """ Gets the number of training occasions remaining 
             before birthday. """
-        # print(f"idx {self.idx}: wdiff = {self.bweek} - {week}")
         wdiff: int = (self.bweek - week) % 13
         if wdiff < 0:
             wdiff += 13
         
         dose_reset: bool = day == 7	
         last_training: bool = self.bday == 7		
-        # print(f"{wdiff} + {int(last_training)} - {int(dose_reset)}")									
         return wdiff + int(last_training) - int(dose_reset)
     
 class Msg_t(Enum):
@@ -99,7 +97,7 @@ class Msg_t(Enum):
 
 # ------------------------------------------------------------------------------
 # Functions
-# ---------------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 """ Yell to the terminal in color depending on mood. """
 def yell(msg: str, lvl: Msg_t):
@@ -113,6 +111,8 @@ def yell(msg: str, lvl: Msg_t):
         yell("Unknown message type!", Msg_t.ERROR)
 
     print(colored(msg, color))
+    if lvl == Msg_t.ERROR:
+        exit()
         
 
 def filter_players(players: list[Player], 
@@ -233,7 +233,7 @@ def wstext2int(s: str) -> str:
 
     return s[i1:i2]	
     
-# ---------------------------------------------------------------------------------------	
+# ------------------------------------------------------------------------------	
 
 def parse_transfers(soup: BeautifulSoup) -> list[Player]:
     
@@ -274,25 +274,26 @@ def parse_transfers(soup: BeautifulSoup) -> list[Player]:
 def parse(filename: str, short_flag: str) -> list[Player]:
     """ Creates the necessary objects for parsing and 
         calls the correct parser function. """
-
-    file: TextIOWrapper = open(filename, errors="ignore")
-    soup: BeautifulSoup = BeautifulSoup(file, "html.parser",
-                                     from_encoding="utf-8")
     players: list[Player] = []
-
-    # Parse current in-game date.
     global week
     global day
-    week, day = get_current_date(soup)
 
-    # We can trust that short_flag is a valid flag here.
-    if short_flag == "-r":
-        players = parse_roster(soup)
-    elif short_flag == "-t":
-        players = parse_transfers(soup)
-    else:
-        yell("This should not happen.", Msg_t.ERROR)
-        exit()
+    with open(filename, errors="ignore", mode='r') as file:
+
+        if not bool(file.read(1)):
+            yell(f"{filename} is empty.", Msg_t.ERROR)
+
+        soup: BeautifulSoup = BeautifulSoup(file, "html.parser",
+                                        from_encoding="utf-8")
+        # Parse current in-game date.
+        week, day = get_current_date(soup)
+        # We can trust that short_flag is a valid flag here.
+        if short_flag == "-r":
+            players = parse_roster(soup)
+        elif short_flag == "-t":
+            players = parse_transfers(soup)
+        else:
+            yell("This should not happen.", Msg_t.ERROR)
     
     return players
 
@@ -306,7 +307,6 @@ def print_value_predictions(players: list[Player]) -> None:
     
     if not players:
         yell("No players found.", Msg_t.ERROR)
-        exit()
 
     init()
     headline: str = ""
@@ -326,13 +326,17 @@ def print_value_predictions(players: list[Player]) -> None:
         yell(f"Värde:	{num2str(p.value)} kr", Msg_t.APP)
         if p.age == 17:
             # Players over the age of 17 rarely develop at 300k/w
-            yell(f"300k/w: {num2str(p.value + rem_trainings * 300000)} kr", Msg_t.APP)
+            yell(f"300k/w: {num2str(p.value + rem_trainings * 300000)} kr",
+                 Msg_t.APP)
 
-        yell(f"400k/w: {num2str(p.value + rem_trainings * 400000)} kr", Msg_t.APP)
-        yell(f"500k/w: {num2str(p.value + rem_trainings * 500000)} kr", Msg_t.APP)
+        yell(f"400k/w: {num2str(p.value + rem_trainings * 400000)} kr",
+             Msg_t.APP)
+        yell(f"500k/w: {num2str(p.value + rem_trainings * 500000)} kr",
+             Msg_t.APP)
 
         if p.age > 17:
-            yell(f"600k/w: {num2str(p.value + rem_trainings * 600000)} kr", Msg_t.APP)
+            yell(f"600k/w: {num2str(p.value + rem_trainings * 600000)} kr",
+                 Msg_t.APP)
 
     yell(DIVIDER_LENGTH * "-", Msg_t.INFO)
     # Display some info that might be interesting.
@@ -361,6 +365,7 @@ def print_usage() -> None:
     print("    Calculate how much it would cost to change capacity (build/demolish).")
     print("    Also prints how many weeks it would take before arena being profitable,")
     print("    as well as how much difference it will be in terms of rent.")
+    exit()
 
 # ------------------------------------------------------------------------------
 # Main function
@@ -370,7 +375,6 @@ def main():
     argc: int = len(argv)
     if argc < ARGC_MIN or argc > ARGC_MAX:
         print_usage()	
-        exit()
 
     filter: bool = False
     age_min: int = FILTER_DEFAULT_MIN
@@ -382,7 +386,6 @@ def main():
     for i in range(len(args)):
         if args[i] in ("-h", "--help"):
             print_usage()
-            exit()
         elif args[i] in ("-r", "--roster"):
             players = parse(FILE_ROSTER, "-r")
         elif args[i] in ("-t", "--transfer"):
@@ -396,7 +399,8 @@ def main():
                 i = i + 1
                 age_min, age_max = [int(x) for x in args[i].split(',')]
         elif args[i] in ("-a", "--arena"):
-            if i+2 < len(args) and args[i+1].isnumeric() and args[i+2].isnumeric():
+            if i + 2 < len(args) and args[i + 1].isnumeric() \
+                and args[i + 2].isnumeric():
                 print_test_case(int(args[i + 1]), int(args[i + 2]))
             else:
                 print_usage()
@@ -405,15 +409,11 @@ def main():
 
         else:
             print_usage()
-            exit()
-
-    # for i in range(len(players)):
-        # print(f"{i}. {players[i].name}")
     
     players = filter_players(players, age_min, age_max) if filter else players
     print_value_predictions(players)
 
-# ---------------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 if __name__ == "__main__":
     main()
