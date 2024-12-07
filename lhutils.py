@@ -1,16 +1,19 @@
 # ---------------------------------------------------------------------------------------
+# TODO:
+# * fix bug with new players around 900k not showing with filter
+# ---------------------------------------------------------------------------------------
 # Imports
 # ---------------------------------------------------------------------------------------
 
-import json
-import re
-import sys
-import unicodedata
-import arena
-
-
+from arena import print_test_case
 from bs4 import BeautifulSoup, ResultSet, PageElement
+from colorama import init
+from enum import Enum
 from io import TextIOWrapper
+from re import match
+from sys import argv
+from termcolor import colored
+from unicodedata import normalize
 
 # ---------------------------------------------------------------------------------------
 # Constants
@@ -27,6 +30,11 @@ MAX_DAYS: int = 7
 MAX_WEEKS: int = 13
 FILTER_DEFAULT_MIN: int = 17
 FILTER_DEFAULT_MAX: int = 22
+
+CLR_APP: str = "white"
+CLR_INFO: str = "green"
+CLR_ERROR: str = "red"
+
 
 # Predicted Value Thresholds
 # |-----|------|-----------------|
@@ -65,8 +73,8 @@ class Player:
 		self.value: int = 0
 		self.idx: int = 0   				  # 1-based index for transfers.
 		self.name: str = ""
-		self.position: str = ""
-		self.current_bid: str = ""			  # Starting bid in parenthesis if no bids. 	 
+		self.pos: str = ""
+		self.bid: str = ""			  # Starting bid in parenthesis if no bids. 	 
 
 	def get_trainings_left(self) -> int:
 		""" Gets the number of training occasions remaining 
@@ -80,10 +88,29 @@ class Player:
 		last_training: bool = self.bday == 7		
 		# print(f"{wdiff} + {int(last_training)} - {int(dose_reset)}")									
 		return wdiff + int(last_training) - int(dose_reset)
+	
+class Msg_t(Enum):
+	APP = 0		# The actual output of the program
+	INFO = 1	# Status update/other information
+	ERROR = 2	# Something went wrong
 
 # ---------------------------------------------------------------------------------------
 # Functions
 # ---------------------------------------------------------------------------------------
+
+""" Yell to the terminal in color depending on mood. """
+def yell(msg: str, lvl: Msg_t):
+	if lvl == Msg_t.APP:
+		color = CLR_APP
+	elif lvl == Msg_t.INFO:
+		color = CLR_INFO
+	elif lvl == Msg_t.ERROR:
+		color = CLR_ERROR
+	else:
+		yell("Unknown message type!", Msg_t.ERROR)
+
+	print(colored(msg, color))
+		
 
 def filter_players(players: list[Player], 
 				   age_min: int, age_max: int) -> list[Player]:
@@ -108,7 +135,7 @@ def filter_players(players: list[Player],
 def get_current_date(soup: BeautifulSoup) -> list:
 	#  Find the current date (in game) in the HTML file
 	current_date_str = soup.find(id="topmenurightdateinner").get_text()
-	clean_str = unicodedata.normalize("NFKD", current_date_str)
+	clean_str = normalize("NFKD", current_date_str)
 	return [int(a) for a in clean_str.split(' ') if a.isnumeric()]
 
 # ---------------------------------------------------------------------------------------
@@ -170,7 +197,7 @@ def parse_roster(soup: BeautifulSoup) -> list[Player]:
 		birthdate = numstr(title_list[4])
 
 		player.name = anchor.get_text()
-		player.position = ID2POS_DICT[anchor["id"].split("_")[3]]
+		player.pos = ID2POS_DICT[anchor["id"].split("_")[3]]
 		player.age = int(numstr(title_list[0]))
 		player.bday = int(birthdate[-1])
 		player.bweek = int(birthdate[:-1])
@@ -201,25 +228,26 @@ def wstext2int(s: str) -> str:
 
 	return s[i1:i2]	
 	
+# ---------------------------------------------------------------------------------------	
 
 def parse_transfers(soup: BeautifulSoup) -> list[Player]:
 	
 	# Should probably parse div.get_text() instead of the title.
-	# That way we would also get the position. 
+	# That way we would also get the pos. 
 
 	players: list[Player] = []
 	div: PageElement = None
 
 	information: ResultSet = soup.find_all("div", {"class":"ts_collapsed_1"})
 	values: ResultSet = soup.find_all("div", {"class":"ts_collapsed_3"})
-	current_bids: ResultSet = soup.find_all("div", {"class":"ts_collapsed_5"})
+	bids: ResultSet = soup.find_all("div", {"class":"ts_collapsed_5"})
 
 	for i, div in enumerate(information):
 		player: Player = Player()
 		info: list[str] = [s for s in div.stripped_strings]
 
 		# info has kind of a weird structure:
-		# [idx, player_name, ',', 'x år', '(W-D), position, shoots]
+		# [idx, player_name, ',', 'x år', '(W-D), pos, shoots]
 
 		player.name = info[1]
 		player.age = int(numstr(info[3])) 
@@ -227,9 +255,9 @@ def parse_transfers(soup: BeautifulSoup) -> list[Player]:
 		player.bday = int(bdate_str[-1]) 	# last digit is bday,
 		player.bweek = int(bdate_str[:-1])	# and the rest is bweek.
 
-		player.position = info[4].split(", ")[1]
+		player.pos = info[4].split(", ")[1]
 		player.value = int(numstr(values[i].get_text()))
-		player.current_bid = wstext2int(current_bids[i].get_text())
+		player.bid = wstext2int(bids[i].get_text())
 
 		player.idx = i + 1
 		players += [player]
@@ -257,7 +285,7 @@ def parse(filename: str, short_flag: str) -> list[Player]:
 	elif short_flag == "-t":
 		players = parse_transfers(soup)
 	else:
-		print("This should not happen.")
+		yell("This should not happen.", Msg_t.ERROR)
 		exit()
 	
 	return players
@@ -269,34 +297,41 @@ def parse(filename: str, short_flag: str) -> list[Player]:
 def print_value_predictions(players: list[Player]) -> None:
 	""" Predicts the value of a player at the end of 
 		the given age (after last training). """ 
-
+	
 	if not players:
-		print("No players found.")
+		yell("No players found.", Msg_t.ERROR)
 		exit()
 
+	init()
 	headline: str = ""
-	for player in players:
-		rem_trainings: int = player.get_trainings_left()
-		print(20 * "-")
+	DIVIDER_LENGTH: int = 20
+	for p in players:
+		rem_trainings: int = p.get_trainings_left()
+		yell(DIVIDER_LENGTH * "-", Msg_t.INFO)
 
-		if player.idx:
+		if p.idx:
 			# This means we have parsed the transfer list
-			headline = f"{player.idx}. {player.name}, {player.age}, {player.current_bid}, {player.position}"
+			headline = f"{p.idx}. {p.name}, {p.age}, {p.bid}, {p.pos}"
 		else:
 			# At the moment this can only be roster
-			headline = f"{player.name}, {player.age}, {player.position}"
+			headline = f"{p.name}, {p.age}, {p.pos}"
 
-		print(headline)
-		print(f"Värde:	{num2str(player.value)} kr")
-		if player.age == 17:
+		yell(headline, Msg_t.APP)
+		yell(f"Värde:	{num2str(p.value)} kr", Msg_t.APP)
+		if p.age == 17:
 			# Players over the age of 17 rarely develop at 300k/w
-			print(f"300k/w: {num2str(player.value + rem_trainings * 300000)} kr")
+			yell(f"300k/w: {num2str(p.value + rem_trainings * 300000)} kr", Msg_t.APP)
 
-		print(f"400k/w: {num2str(player.value + rem_trainings * 400000)} kr")
-		print(f"500k/w: {num2str(player.value + rem_trainings * 500000)} kr")
+		yell(f"400k/w: {num2str(p.value + rem_trainings * 400000)} kr", Msg_t.APP)
+		yell(f"500k/w: {num2str(p.value + rem_trainings * 500000)} kr", Msg_t.APP)
 
-		if player.age > 17:
-			print(f"600k/w: {num2str(player.value + rem_trainings * 600000)} kr")
+		if p.age > 17:
+			yell(f"600k/w: {num2str(p.value + rem_trainings * 600000)} kr", Msg_t.APP)
+
+	yell(DIVIDER_LENGTH * "-", Msg_t.INFO)
+	# Display some info that might be interesting.
+	# Number of good players (+ percentage) (if filter was enabled)
+	# Count players per position
 
 # ---------------------------------------------------------------------------------------
 
@@ -326,7 +361,7 @@ def print_usage() -> None:
 # ---------------------------------------------------------------------------------------
 
 def main():
-	argc: int = len(sys.argv)
+	argc: int = len(argv)
 	if argc < ARGC_MIN or argc > ARGC_MAX:
 		print_usage()	
 		exit()
@@ -334,7 +369,7 @@ def main():
 	filter: bool = False
 	age_min: int = FILTER_DEFAULT_MIN
 	age_max: int = FILTER_DEFAULT_MAX
-	args: list[str] = sys.argv[1:]
+	args: list[str] = argv[1:]
 	players = list[Player]
 
 	# Parse arguments
@@ -351,12 +386,12 @@ def main():
 			# Filter flag can be succeeded by age range (comma separated)
 			# If not we just use the default values. This also applies
 			# when the age range looks weird.
-			if i + 1 < len(args) and re.match("\d\d,[0-9]+", args[i + 1]):
+			if i + 1 < len(args) and match("\d\d,[0-9]+", args[i + 1]):
 				i = i + 1
 				age_min, age_max = [int(x) for x in args[i].split(',')]
 		elif args[i] in ("-a", "--arena"):
-			if i + 2 < len(args) and args[i + 1].isnumeric() and args[i + 2].isnumeric():
-				arena.print_test_case(int(args[i + 1]), int(args[i + 2]))
+			if i+2 < len(args) and args[i+1].isnumeric() and args[i+2].isnumeric():
+				print_test_case(int(args[i + 1]), int(args[i + 2]))
 			else:
 				print_usage()
 			
