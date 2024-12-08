@@ -19,8 +19,6 @@ from unicodedata import normalize
 # Constants
 # ------------------------------------------------------------------------------
 
-FILE_DEVELOPMENT: str = "html/development.html"
-FILE_PLAYER: str = "html/player.html"
 FILE_ROSTER: str = "html/roster.html"
 FILE_TRANSFER: str = "html/transfers.html"
 
