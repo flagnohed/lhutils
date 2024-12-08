@@ -1,3 +1,5 @@
+# ------------------------------------------------------------------------------
+
 from bs4 import BeautifulSoup, PageElement, ResultSet
 from player import Player
 from utils import (
@@ -5,10 +7,13 @@ from utils import (
     numstr
 )
 
+# ------------------------------------------------------------------------------
+
 ID2POS_DICT: dict[str, str] = {"ucTeamSquadGoalkeepers" : "GK",
                                "ucTeamSquadDefenders" : "DEF",
                                "ucTeamSquadForwards" : "FWD"}
 
+# ------------------------------------------------------------------------------
 
 def parse_roster(soup: BeautifulSoup) -> list[Player]:
     values: ResultSet[PageElement] = soup.find_all("td", 
@@ -40,6 +45,9 @@ def parse_roster(soup: BeautifulSoup) -> list[Player]:
 
     return players
 
+# ------------------------------------------------------------------------------
 
 def is_player_anchor(anchor: PageElement):
     return anchor["href"].startswith("/Pages/Player/Player.aspx?Player_Id=")
+
+# ------------------------------------------------------------------------------

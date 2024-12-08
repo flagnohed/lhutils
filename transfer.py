@@ -1,9 +1,13 @@
+# ------------------------------------------------------------------------------
+
 from bs4 import BeautifulSoup, PageElement, ResultSet
 from player import Player
 from utils import (
     numstr,
     wstext2int
 )
+
+# ------------------------------------------------------------------------------
 
 def parse_transfers(soup: BeautifulSoup) -> list[Player]:
     
@@ -16,7 +20,7 @@ def parse_transfers(soup: BeautifulSoup) -> list[Player]:
     information: ResultSet = soup.find_all("div", {"class":"ts_collapsed_1"})
     values: ResultSet = soup.find_all("div", {"class":"ts_collapsed_3"})
     bids: ResultSet = soup.find_all("div", {"class":"ts_collapsed_5"})
-    
+
     for i, div in enumerate(information):
         player: Player = Player()
         info: list[str] = [s for s in div.stripped_strings]
@@ -38,3 +42,5 @@ def parse_transfers(soup: BeautifulSoup) -> list[Player]:
         players += [player]
 
     return players
+
+# ------------------------------------------------------------------------------

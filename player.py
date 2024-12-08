@@ -4,6 +4,8 @@ from utils import (
     printable_num
 )
 
+# ------------------------------------------------------------------------------
+
 class Player:
     def __init__(self):
         self.age: int = 0
@@ -25,7 +27,9 @@ class Player:
         dose_reset: bool = day == 7	
         last_training: bool = self.bday == 7		
         return wdiff + int(last_training) - int(dose_reset)
-    
+
+# ------------------------------------------------------------------------------
+
 def print_value_predictions(players: list[Player], week, day) -> None:
     """ Predicts the value of a player at the end of 
         the given age (after last training). """ 
@@ -66,3 +70,5 @@ def print_value_predictions(players: list[Player], week, day) -> None:
     # Display some info that might be interesting.
     # Number of good players (+ percentage) (if filter was enabled)
     # Count players per position
+
+# ------------------------------------------------------------------------------
