@@ -65,7 +65,7 @@ def filter_players(players: list[Player], age_min: int, age_max: int, week: int,
             if player.value + trainings_left * w >= t:
                 fplayers += [player]
         
-        elif player.age == 17 and trainings_left >= MAX_WEEKS - 1 and \
+        if player.age == 17 and trainings_left >= MAX_WEEKS - 1 and \
             player.value >= 900000:
             fplayers += [player]
 
