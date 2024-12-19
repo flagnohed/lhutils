@@ -95,21 +95,10 @@ def parse_transfer_history(soup: BeautifulSoup) -> list[HistEntry]:
 
 
 def print_hist_entry(e: HistEntry, rank: int, sold: bool) -> None:
-    arrow: str = "--->" if sold else "<---"
+    arrow: str = "TO" if sold else "FROM"
     print(f"{e.date} {e.name}, {e.age} {arrow} {e.other_team}")
     print(f"    Transfer sum: {e.transfer_sum}")
     print(f"    Player value: {e.player_value}")
 
 def show_history(entries: list[HistEntry]) -> None:
-    # Top 5 entries in terms of transfer sums
-    top_5_sold: list[HistEntry] = [e for e in entries \
-                                    if e.ttype == Transfer_t.SELL]
-    top_5_bought: list[HistEntry] = [e for e in entries \
-                                        if e.ttype == Transfer_t.BUY]
-
-    print("5 most expensive players:")
-    for i, e in enumerate(top_5_bought):
-        print_hist_entry(e, i + 1, False)
-             
-    top_5_other_teams: list[str]
-                
+    pass           
