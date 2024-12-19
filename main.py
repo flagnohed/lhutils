@@ -12,7 +12,11 @@ from player import Player, print_value_predictions
 from re import match
 from sys import argv
 from roster import parse_roster
-from transfer import parse_transfers
+from transfer import (
+    parse_transfers,
+    parse_transfer_history,
+    show_history
+)
 from utils import (
     get_current_date,
     Msg_t,
@@ -25,6 +29,7 @@ from utils import (
 
 FILE_ROSTER: str = "html/roster.html"
 FILE_TRANSFER: str = "html/transfers.html"
+FILE_TRANSFER_HISTORY: str = "html/transfer_history.html"
 
 ARGC_MIN: int = 2
 ARGC_MAX: int = 4
@@ -83,7 +88,7 @@ def is_flag(param: str) -> bool:
 def parse(filename: str, short_flag: str) -> list[Player]:
     """ Creates the necessary objects for parsing and 
         calls the correct parser function. """
-    players: list[Player] = []
+    players: list = []
 
     with open(filename, errors="ignore", mode='r') as file:
 
@@ -99,6 +104,8 @@ def parse(filename: str, short_flag: str) -> list[Player]:
             players = parse_roster(soup)
         elif short_flag == "-t":
             players = parse_transfers(soup)
+        elif short_flag == "-th":
+            players = parse_transfer_history(soup)
         else:
             yell("This should not happen.", Msg_t.ERROR)
     
@@ -138,8 +145,8 @@ def main():
     age_min: int = FILTER_DEFAULT_MIN
     age_max: int = FILTER_DEFAULT_MAX
     args: list[str] = argv[1:]
-    players = list[Player]
-    init()  # <--- colors in terminal
+    players: list = []  # can contain Players or HistEntries
+    init()              # <--- colors in terminal
     # Parse arguments
     for i in range(len(args)):
         if args[i] in ("-h", "--help"):
@@ -148,6 +155,7 @@ def main():
             players, week, day = parse(FILE_ROSTER, "-r")
         elif args[i] in ("-t", "--transfer"):
             players, week, day = parse(FILE_TRANSFER, "-t")
+            
         elif args[i] in ("-f", "--filter"):
             filter = True
             # Filter flag can be succeeded by age range (comma separated)
@@ -156,15 +164,22 @@ def main():
             if i + 1 < len(args) and match("\d\d,[0-9]+", args[i + 1]):
                 i = i + 1
                 age_min, age_max = [int(x) for x in args[i].split(',')]
+        elif args[i] in ("-th", "--transfer-history"):
+            if filter:
+                yell("Filter not compatible with transfer history.",
+                     Msg_t.ERROR)
+            players, _, _ = parse(FILE_TRANSFER_HISTORY, "-th")
+            show_history(players)
+            exit()
+
         elif args[i] in ("-a", "--arena"):
             if i + 2 < len(args) and args[i + 1].isnumeric() \
                 and args[i + 2].isnumeric():
                 print_test_case(int(args[i + 1]), int(args[i + 2]))
+                exit()
             else:
                 print_usage()
             
-            exit()
-
         else:
             print_usage()
     
