@@ -2,6 +2,7 @@
 
 from bs4 import BeautifulSoup, PageElement, ResultSet
 from dataclasses import dataclass
+from datetime import date
 from enum import Enum
 from player import Player
 from utils import (
@@ -100,5 +101,52 @@ def print_hist_entry(e: HistEntry, rank: int, sold: bool) -> None:
     print(f"    Transfer sum: {e.transfer_sum}")
     print(f"    Player value: {e.player_value}")
 
+""" This function assumes that e is in bought. """
+def is_flipped(e: HistEntry, sold: list[HistEntry]) -> bool:
+    
+    for i in range(len(sold)):
+        if e.name == sold[i].name:
+            # Found player! Now check dates.
+            pass
+
+
+
 def show_history(entries: list[HistEntry]) -> None:
-    pass           
+    """
+    The plan is to do the following:
+    * separate sold and bought players
+    * sort them based on transfer_sum
+    * calculate stuff
+    * print results
+    """
+    bought: list[HistEntry] = []
+    sold: list[HistEntry] = []
+
+    # Place entries in bought/sold
+    for e in entries:
+        if e.ttype == Transfer_t.BUY:
+            bought += [e]
+        elif e.ttype == Transfer_t.SELL:
+            sold += [e]
+        else:
+            # Shouldn't happen but you never know!
+            yell(f"ERR transfer type detected for {e.name}.", Msg_t.ERR)
+
+    # A flipped player is first bought then sold. 
+    # This is basically filtering out homegrown players,
+    # to see how successful transfer purchases are.
+    flipped: list[HistEntry] = []
+    
+    # Need to figure out how to detect if its actually a flipped player.
+    # Could be for example that we sell a homegrown player
+    # and then buy him back later.
+
+    
+        
+
+
+
+
+
+
+    
