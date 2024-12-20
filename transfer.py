@@ -6,9 +6,11 @@ from datetime import date
 from enum import Enum
 from player import Player
 from utils import (
+    Msg_t,
     numstr,
+    printable_num,
     wstext2int,
-    yell
+    yell,
 )
 
 class Transfer_t(Enum):
@@ -16,7 +18,7 @@ class Transfer_t(Enum):
     BUY = 1
     SELL = 2
 
-
+DATE_FORMAT: str = "%Y-%m-%d"
 # ------------------------------------------------------------------------------
 
 def parse_transfers(soup: BeautifulSoup) -> list[Player]:
@@ -96,19 +98,10 @@ def parse_transfer_history(soup: BeautifulSoup) -> list[HistEntry]:
 
 
 def print_hist_entry(e: HistEntry, rank: int, sold: bool) -> None:
-    arrow: str = "TO" if sold else "FROM"
-    print(f"{e.date} {e.name}, {e.age} {arrow} {e.other_team}")
-    print(f"    Transfer sum: {e.transfer_sum}")
-    print(f"    Player value: {e.player_value}")
-
-""" This function assumes that e is in bought. """
-def is_flipped(e: HistEntry, sold: list[HistEntry]) -> bool:
-    
-    for i in range(len(sold)):
-        if e.name == sold[i].name:
-            # Found player! Now check dates.
-            pass
-
+    arrow: str = "to" if sold else "from"
+    print(f"{rank}: {e.date} {e.name}, {e.age} {arrow} {e.other_team}")
+    print(f"    Transfer sum: {printable_num(e.transfer_sum)} kr")
+    print(f"    Player value: {printable_num(e.player_value)} kr")
 
 
 def show_history(entries: list[HistEntry]) -> None:
@@ -121,32 +114,37 @@ def show_history(entries: list[HistEntry]) -> None:
     """
     bought: list[HistEntry] = []
     sold: list[HistEntry] = []
+    flipped: list[HistEntry] = []
 
-    # Place entries in bought/sold
     for e in entries:
         if e.ttype == Transfer_t.BUY:
             bought += [e]
         elif e.ttype == Transfer_t.SELL:
             sold += [e]
+            # A player is flipped if sold after bought.
+            # This means that if we find a sold player,
+            # check if he already has been added to BOUGHT --> flipped
+            # There COULD be errors here, since multiple players can
+            # have the same name, and we have no other way of checking
+            # identity of player at this time (maybe if we start webscraping)
+            if e.name in [b.name for b in bought]:
+                flipped += [e]
+
         else:
             # Shouldn't happen but you never know!
             yell(f"ERR transfer type detected for {e.name}.", Msg_t.ERR)
 
-    # A flipped player is first bought then sold. 
-    # This is basically filtering out homegrown players,
-    # to see how successful transfer purchases are.
-    flipped: list[HistEntry] = []
+    # show five most expensive bought players
+    bought.sort(key=lambda x: x.transfer_sum, reverse=True)
+    num_players: int = 5
+    yell(f"\n===== {num_players} most expensive players bought =====",
+         Msg_t.INFO)
+    for i in range(num_players):
+        print_hist_entry(bought[i], i + 1, False)
     
-    # Need to figure out how to detect if its actually a flipped player.
-    # Could be for example that we sell a homegrown player
-    # and then buy him back later.
+    sold.sort(key=lambda x: x.transfer_sum, reverse=True)
+    yell(f"\n===== {num_players} most expensive players sold =====",
+         Msg_t.INFO)
+    for i in range(num_players):
+        print_hist_entry(sold[i], i + 1, True)
 
-    
-        
-
-
-
-
-
-
-    
