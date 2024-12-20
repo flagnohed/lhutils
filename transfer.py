@@ -1,12 +1,24 @@
 # ------------------------------------------------------------------------------
 
 from bs4 import BeautifulSoup, PageElement, ResultSet
+from dataclasses import dataclass
+from datetime import date
+from enum import Enum
 from player import Player
 from utils import (
+    Msg_t,
     numstr,
-    wstext2int
+    printable_num,
+    wstext2int,
+    yell,
 )
 
+class Transfer_t(Enum):
+    ERR = 0
+    BUY = 1
+    SELL = 2
+
+DATE_FORMAT: str = "%Y-%m-%d"
 # ------------------------------------------------------------------------------
 
 def parse_transfers(soup: BeautifulSoup) -> list[Player]:
@@ -44,3 +56,95 @@ def parse_transfers(soup: BeautifulSoup) -> list[Player]:
     return players
 
 # ------------------------------------------------------------------------------
+
+def get_transfer_type(ttstr: str) -> Transfer_t:
+    if ttstr == "Sålt":
+        return Transfer_t.SELL
+    elif ttstr == "Köpt":
+        return Transfer_t.BUY
+    else:
+        return Transfer_t.ERR
+
+
+# todo: do this for Player also
+@dataclass
+class HistEntry:
+    ttype: Transfer_t = Transfer_t.ERR
+    date: str = ""
+    name: str = ""
+    other_team: str = ""    # new/old team depending on transfer type
+    age: int = 0
+    transfer_sum: int = 0
+    player_value: int = 0
+
+
+def parse_transfer_history(soup: BeautifulSoup) -> list[HistEntry]:
+    entries: list[HistEntry] = []
+    info: ResultSet = soup.find_all("tr", {"class":"rowMarker"})
+    for row in info:
+        text: list = [field.replace("\xa0", " ") for field 
+                      in row.stripped_strings]
+        entry = HistEntry()
+        entry.date = text[0]
+        entry.ttype = get_transfer_type(text[1])
+        entry.name = text[2]
+        entry.age = int(text[3])
+        entry.other_team = text[4]
+        entry.transfer_sum = int(numstr(text[5]))
+        entry.player_value = int(numstr(text[6]))
+        entries += [entry]
+
+    return entries
+
+
+def print_hist_entry(e: HistEntry, rank: int, sold: bool) -> None:
+    arrow: str = "to" if sold else "from"
+    print(f"{rank}: {e.date} {e.name}, {e.age} {arrow} {e.other_team}")
+    print(f"    Transfer sum: {printable_num(e.transfer_sum)} kr")
+    print(f"    Player value: {printable_num(e.player_value)} kr")
+
+
+def show_history(entries: list[HistEntry]) -> None:
+    """
+    The plan is to do the following:
+    * separate sold and bought players
+    * sort them based on transfer_sum
+    * calculate stuff
+    * print results
+    """
+    bought: list[HistEntry] = []
+    sold: list[HistEntry] = []
+    flipped: list[HistEntry] = []
+
+    for e in entries:
+        if e.ttype == Transfer_t.BUY:
+            bought += [e]
+        elif e.ttype == Transfer_t.SELL:
+            sold += [e]
+            # A player is flipped if sold after bought.
+            # This means that if we find a sold player,
+            # check if he already has been added to BOUGHT --> flipped
+            # There COULD be errors here, since multiple players can
+            # have the same name, and we have no other way of checking
+            # identity of player at this time (maybe if we start webscraping)
+            if e.name in [b.name for b in bought]:
+                flipped += [e]
+
+        else:
+            # Shouldn't happen but you never know!
+            yell(f"ERR transfer type detected for {e.name}.", Msg_t.ERR)
+
+    # show five most expensive bought players
+    bought.sort(key=lambda x: x.transfer_sum, reverse=True)
+    num_players: int = 5
+    yell(f"\n===== {num_players} most expensive players bought =====",
+         Msg_t.INFO)
+    for i in range(num_players):
+        print_hist_entry(bought[i], i + 1, False)
+    
+    sold.sort(key=lambda x: x.transfer_sum, reverse=True)
+    yell(f"\n===== {num_players} most expensive players sold =====",
+         Msg_t.INFO)
+    for i in range(num_players):
+        print_hist_entry(sold[i], i + 1, True)
+
