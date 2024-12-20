@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 # ------------------------------------------------------------------------------
 # TODO:
 # * fix bug with new players around 900k not showing with filter
