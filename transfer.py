@@ -76,7 +76,7 @@ class HistEntry:
     age: int = 0
     transfer_sum: int = 0
     player_value: int = 0
-
+    money_gained: int = 0
 
 def parse_transfer_history(soup: BeautifulSoup) -> list[HistEntry]:
     entries: list[HistEntry] = []
@@ -104,17 +104,22 @@ def print_hist_entry(e: HistEntry, rank: int, sold: bool) -> None:
     print(f"    Player value: {printable_num(e.player_value)} kr")
 
 
+def show_top_entries(key_func, msg: str, entries: list[HistEntry],
+                     sold: bool, num_players: int):
+    entries.sort(key=key_func, reverse=True)
+    yell(msg, Msg_t.INFO)
+    for i in range(num_players):
+        print_hist_entry(entries[i], i + 1, sold)
+
+
 def show_history(entries: list[HistEntry]) -> None:
-    """
-    The plan is to do the following:
-    * separate sold and bought players
-    * sort them based on transfer_sum
-    * calculate stuff
-    * print results
-    """
+
     bought: list[HistEntry] = []
     sold: list[HistEntry] = []
     flipped: list[HistEntry] = []
+    bidx: int = -1
+    msg: str = ""
+    num_players: int = 5
 
     for e in entries:
         if e.ttype == Transfer_t.BUY:
@@ -127,24 +132,20 @@ def show_history(entries: list[HistEntry]) -> None:
             # There COULD be errors here, since multiple players can
             # have the same name, and we have no other way of checking
             # identity of player at this time (maybe if we start webscraping)
-            if e.name in [b.name for b in bought]:
-                flipped += [e]
+            try:
+                bidx = [b.name for b in bought].index(e.name)
+            except ValueError:
+                # Not a flipped player, so we are done.
+                continue
+
+            e.money_gained = e.transfer_sum - bought[bidx].transfer_sum
+            flipped += [e]
 
         else:
             # Shouldn't happen but you never know!
             yell(f"ERR transfer type detected for {e.name}.", Msg_t.ERR)
 
-    # show five most expensive bought players
-    bought.sort(key=lambda x: x.transfer_sum, reverse=True)
-    num_players: int = 5
-    yell(f"\n===== {num_players} most expensive players bought =====",
-         Msg_t.INFO)
-    for i in range(num_players):
-        print_hist_entry(bought[i], i + 1, False)
-    
-    sold.sort(key=lambda x: x.transfer_sum, reverse=True)
-    yell(f"\n===== {num_players} most expensive players sold =====",
-         Msg_t.INFO)
-    for i in range(num_players):
-        print_hist_entry(sold[i], i + 1, True)
+    msg = "\n===== {num_players} most expensive players sold ====="
+    show_top_entries(lambda x: x.transfer_sum, msg, bought, False, num_players)
+
 
