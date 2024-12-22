@@ -1,7 +1,7 @@
 # ------------------------------------------------------------------------------
 
 from bs4 import BeautifulSoup, PageElement, ResultSet
-from dataclasses import dataclass
+import dataclasses
 from datetime import date
 from enum import Enum
 from player import Player
@@ -17,14 +17,15 @@ class Transfer_t(Enum):
     ERR = 0
     BUY = 1
     SELL = 2
+    FLIP = 3
 
 DATE_FORMAT: str = "%Y-%m-%d"
 # ------------------------------------------------------------------------------
 
 def parse_transfers(soup: BeautifulSoup) -> list[Player]:
-    
+
     # Should probably parse div.get_text() instead of the title.
-    # That way we would also get the pos. 
+    # That way we would also get the pos.
 
     players: list[Player] = []
     div: PageElement = None
@@ -41,7 +42,7 @@ def parse_transfers(soup: BeautifulSoup) -> list[Player]:
         # [idx, player_name, ',', 'x år', '(W-D), pos, shoots]
 
         player.name = info[1]
-        player.age = int(numstr(info[3])) 
+        player.age = int(numstr(info[3]))
         bdate_str: str = numstr(info[4])
         player.bday = int(bdate_str[-1])    # last digit is bday,
         player.bweek = int(bdate_str[:-1])  # and the rest is bweek.
@@ -67,7 +68,7 @@ def get_transfer_type(ttstr: str) -> Transfer_t:
 
 
 # todo: do this for Player also
-@dataclass
+@dataclasses.dataclass
 class HistEntry:
     ttype: Transfer_t = Transfer_t.ERR
     date: str = ""
@@ -82,7 +83,7 @@ def parse_transfer_history(soup: BeautifulSoup) -> list[HistEntry]:
     entries: list[HistEntry] = []
     info: ResultSet = soup.find_all("tr", {"class":"rowMarker"})
     for row in info:
-        text: list = [field.replace("\xa0", " ") for field 
+        text: list = [field.replace("\xa0", " ") for field
                       in row.stripped_strings]
         entry = HistEntry()
         entry.date = text[0]
@@ -97,19 +98,34 @@ def parse_transfer_history(soup: BeautifulSoup) -> list[HistEntry]:
     return entries
 
 
-def print_hist_entry(e: HistEntry, rank: int, sold: bool) -> None:
-    arrow: str = "to" if sold else "from"
-    print(f"{rank}: {e.date} {e.name}, {e.age} {arrow} {e.other_team}")
-    print(f"    Transfer sum: {printable_num(e.transfer_sum)} kr")
-    print(f"    Player value: {printable_num(e.player_value)} kr")
+def print_hist_entry(e: HistEntry, rank: int) -> None:
+    arrow: str = ""
+
+    # We do not care about ERR here, cannot come past previous function.
+    if e.ttype == Transfer_t.BUY:
+        arrow = "from"
+    elif e.ttype == Transfer_t.SELL:
+        arrow = "to"
+
+    team: str = "" if e.ttype == Transfer_t.FLIP else e.other_team
+    print(f"{rank}: {e.date} {e.name}, {e.age} {arrow} {team}")
+
+    if e.ttype == Transfer_t.FLIP:
+        print(f"    Money gained: {printable_num(e.money_gained)} kr")
+    else:
+        print(f"    Transfer sum: {printable_num(e.transfer_sum)} kr")
+
+    if e.ttype != Transfer_t.FLIP:
+        print(f"    Player value: {printable_num(e.player_value)} kr")
 
 
 def show_top_entries(key_func, msg: str, entries: list[HistEntry],
-                     sold: bool, num_players: int):
-    entries.sort(key=key_func, reverse=True)
+                     num_players: int, r: bool):
+    entries.sort(key=key_func, reverse=r)
     yell(msg, Msg_t.INFO)
-    for i in range(num_players):
-        print_hist_entry(entries[i], i + 1, sold)
+    n: int = min(num_players, len(entries))
+    for i in range(n):
+        print_hist_entry(entries[i], i + 1)
 
 
 def show_history(entries: list[HistEntry]) -> None:
@@ -123,29 +139,43 @@ def show_history(entries: list[HistEntry]) -> None:
 
     for e in entries:
         if e.ttype == Transfer_t.BUY:
-            bought += [e]
-        elif e.ttype == Transfer_t.SELL:
-            sold += [e]
+            try:
+                bidx = [s.name for s in sold].index(e.name)
+            except ValueError:
+                # Not a flipped player
+                bought += [e]
+                continue
             # A player is flipped if sold after bought.
             # This means that if we find a sold player,
             # check if he already has been added to BOUGHT --> flipped
             # There COULD be errors here, since multiple players can
             # have the same name, and we have no other way of checking
             # identity of player at this time (maybe if we start webscraping)
-            try:
-                bidx = [b.name for b in bought].index(e.name)
-            except ValueError:
-                # Not a flipped player, so we are done.
-                continue
 
-            e.money_gained = e.transfer_sum - bought[bidx].transfer_sum
-            flipped += [e]
+            e_copy = dataclasses.replace(e)
+            e_copy.money_gained = sold[bidx].transfer_sum - e.transfer_sum
+            e_copy.ttype = Transfer_t.FLIP
+            bought += [e]
+            flipped += [e_copy]
 
+
+        elif e.ttype == Transfer_t.SELL:
+            sold += [e]
         else:
             # Shouldn't happen but you never know!
             yell(f"ERR transfer type detected for {e.name}.", Msg_t.ERR)
 
-    msg = "\n===== {num_players} most expensive players sold ====="
-    show_top_entries(lambda x: x.transfer_sum, msg, bought, False, num_players)
+        bidx = -1
 
+    # Print results
+    msg = f"\n===== {num_players} most expensive players bought ====="
+    show_top_entries(lambda x: x.transfer_sum, msg, bought, num_players, True)
 
+    msg = f"\n===== {num_players} most expensive players sold ====="
+    show_top_entries(lambda x: x.transfer_sum, msg, sold, num_players, True)
+
+    msg = f"\n===== {num_players} most gained (flipped players) ====="
+    show_top_entries(lambda x: x.money_gained, msg, flipped, num_players, True)
+
+    msg = f"\n===== {num_players} most lost (flipped players) ====="
+    show_top_entries(lambda x: x.money_gained, msg, flipped, num_players, False)
