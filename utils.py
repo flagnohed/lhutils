@@ -11,7 +11,6 @@ CLR_APP: str = "white"
 CLR_INFO: str = "green"
 CLR_ERROR: str = "red"
 
-
 class Msg_t(Enum):
     APP = 0		# The actual output of the program
     INFO = 1	# Status update/other information
@@ -19,8 +18,7 @@ class Msg_t(Enum):
 
 # ------------------------------------------------------------------------------
 
-""" Yell to the terminal in color depending on mood. 
-    TODO: Fix red color not working properly. """
+""" Yell to the terminal in color depending on mood. """
 def yell(msg: str, lvl: Msg_t):
     if lvl == Msg_t.APP:
         color = CLR_APP
@@ -48,7 +46,7 @@ def get_current_date(soup: BeautifulSoup) -> list:
 def printable_num(num: int) -> str:
     """ Takes an integer, converts it to a string.
         Makes it easier to read large numbers like 5000000 --> 5 000 000. """
-    rev_str: str = str(num)[::-1]   
+    rev_str: str = str(num)[::-1]
     count: int = 0
     pretty_str: str = ""
 
@@ -58,7 +56,7 @@ def printable_num(num: int) -> str:
         if count == 3:
             count = 0
             pretty_str += " "
-    
+
     return pretty_str[::-1]
 
 # ------------------------------------------------------------------------------
