@@ -1,12 +1,5 @@
 #!/usr/bin/env python3
 
-# ------------------------------------------------------------------------------
-# TODO:
-# * fix bug with new players around 900k not showing with filter
-# ------------------------------------------------------------------------------
-# Imports
-# ------------------------------------------------------------------------------
-
 from arena import print_test_case
 from bs4 import BeautifulSoup
 from colorama import init
@@ -17,12 +10,12 @@ from roster import parse_roster
 from transfer import (
     parse_transfers,
     parse_transfer_history,
-    show_history
+    show_history,
 )
 from utils import (
     get_current_date,
     Msg_t,
-    yell
+    yell,
 )
 
 # ------------------------------------------------------------------------------
@@ -59,40 +52,46 @@ PVT_DICT: dict[int, tuple[int, int]] = {17: (5200000, 300000),
 
 # ------------------------------------------------------------------------------
 
-def filter_players(players: list[Player], age_min: int, age_max: int, week: int, 
-                   day: int) -> list[Player]:
-    """ Filters out bad players, based on values in PVT_DICT.
+""" Filters out bad players, based on values in PVT_DICT.
         Returns a list of players that passed the filter. """
+def filter_players(players: list[Player], age_min: int, age_max: int, week: int,
+                   day: int) -> list[Player]:
     fplayers: list[Player] = []
     for player in players:
         trainings_left = player.get_trainings_left(week, day)
         if player.age in PVT_DICT.keys() and age_min <= player.age <= age_max:
             # Get threshold and weekly increase for the relevant age.
             t, w = PVT_DICT[player.age]
+
+            """
+            Add to FPLAYERS if  player probably will reach threshold value OR
+            player just turned 17 OR
+            player value already has a close-to-threshold value
+            """
             if player.value + trainings_left * w >= t:
                 fplayers += [player]
-        
+
             elif player.age == 17 and trainings_left >= MAX_WEEKS - 1 and \
                 player.value >= 900000:
                 fplayers += [player]
-            
+
             elif player.age == 17 and player.value >= 4000000:
                 fplayers += [player]
-                
+
     return fplayers
-            
+
 # ------------------------------------------------------------------------------
 
 """ Determines if argument PARAM is a valid flag. """
 def is_flag(param: str) -> bool:
-    return param in ["-h", "--help", "-r", "--roster", "-t", 
+    return param in ["-h", "--help", "-r", "--roster", "-t",
                      "--transfer", "-f", "--filter"]
 
 # ------------------------------------------------------------------------------
 
-def parse(filename: str, short_flag: str) -> list[Player]:
-    """ Creates the necessary objects for parsing and 
+""" Creates the necessary objects for parsing and
         calls the correct parser function. """
+def parse(filename: str, short_flag: str) -> list[Player]:
     players: list = []
 
     with open(filename, errors="ignore", mode='r') as file:
@@ -113,15 +112,14 @@ def parse(filename: str, short_flag: str) -> list[Player]:
             players = parse_transfer_history(soup)
         else:
             yell("This should not happen.", Msg_t.ERROR)
-    
+
     return players, week, day
 
 # ------------------------------------------------------------------------------
 
-def print_usage() -> None:
-    """ Prints usage information. Called if -h/--help flag present 
+""" Prints usage information. Called if -h/--help flag present
         or usage error detected. """
-    
+def print_usage() -> None:
     print(f"\nUsage: python3 main.py [options]\n")
     print("-h, --help")
     print("    Prints this information and quits.")
@@ -144,7 +142,7 @@ def print_usage() -> None:
 def main():
     argc: int = len(argv)
     if argc < ARGC_MIN or argc > ARGC_MAX:
-        print_usage()	
+        print_usage()
 
     filter: bool = False
     age_min: int = FILTER_DEFAULT_MIN
@@ -160,7 +158,7 @@ def main():
             players, week, day = parse(FILE_ROSTER, "-r")
         elif args[i] in ("-t", "--transfer"):
             players, week, day = parse(FILE_TRANSFER, "-t")
-            
+
         elif args[i] in ("-f", "--filter"):
             filter = True
             # Filter flag can be succeeded by age range (comma separated)
@@ -184,10 +182,10 @@ def main():
                 exit()
             else:
                 print_usage()
-            
+
         else:
             print_usage()
-    
+
     players = filter_players(players, age_min, age_max, week, day) \
         if filter else players
     print_value_predictions(players, week, day)

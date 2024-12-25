@@ -22,6 +22,7 @@ COSTS_PER_SEAT: dict[int, tuple[int, int, int]] = {
 
 # ------------------------------------------------------------------------------
 
+""" Calculates the rent costs based on arena size. """
 def calculate_rent(arena_size: int) -> int:
     rent: int = 0
     short, long, vip = get_best_proportions(arena_size)
@@ -58,7 +59,8 @@ def calculate_demolition_cost(old_arena_size: int, new_arena_size: int) -> int:
     elif new_arena_size == old_arena_size:
         return 0
 
-    seats_short, seats_long, seats_vip = get_best_proportions(old_arena_size - new_arena_size)
+    seats_short, seats_long, seats_vip = get_best_proportions(
+            old_arena_size - new_arena_size)
     return 200000 + 30 * seats_short + 40 * seats_long + 60 * seats_vip
 
 # ------------------------------------------------------------------------------
@@ -69,9 +71,10 @@ def calculate_building_cost(old_arena_size: int, new_arena_size: int) -> int:
         exit()
     elif new_arena_size == old_arena_size:
         return 0
-    
+
     # Get how many seats of each sort we need to build
-    seats_short, seats_long, seats_vip = get_best_proportions(new_arena_size - old_arena_size)
+    seats_short, seats_long, seats_vip = get_best_proportions(
+            new_arena_size - old_arena_size)
     return 350000 + 175 * seats_short + 300 * seats_long + 1500 * seats_vip
 
 # ------------------------------------------------------------------------------
@@ -79,7 +82,8 @@ def calculate_building_cost(old_arena_size: int, new_arena_size: int) -> int:
 def calculate_income(arena_size: int, division: int) -> int:
     short_seats, long_seats, vip_seats = get_best_proportions(arena_size)
     cps_short, cps_long, cps_vip = COSTS_PER_SEAT[division]
-    income = short_seats * cps_short + long_seats * cps_long + vip_seats * cps_vip
+    income = short_seats * cps_short + long_seats * cps_long + \
+            vip_seats * cps_vip
 
     return income
 
@@ -92,6 +96,7 @@ def print_percentages(short: int, long: int, vip: int):
 
 # ------------------------------------------------------------------------------
 
+"""Main driver. Called from main.py. """
 def print_test_case(old_arena_size, new_arena_size) -> None:
     build_cost: int = 0
     demolition_cost: int = 0
@@ -102,7 +107,8 @@ def print_test_case(old_arena_size, new_arena_size) -> None:
         return
 
     if new_arena_size < old_arena_size:
-        demolition_cost = calculate_demolition_cost(old_arena_size, new_arena_size)
+        demolition_cost = calculate_demolition_cost(
+                old_arena_size, new_arena_size)
         print(f"Demolish {old_arena_size} -> {new_arena_size}: {demolition_cost} kr")
     else:
         build_cost = calculate_building_cost(old_arena_size, new_arena_size)
@@ -110,7 +116,7 @@ def print_test_case(old_arena_size, new_arena_size) -> None:
 
     for div in range(1, 6):
         print(f"--> div {div}: new income per week: {calculate_income(new_arena_size, div)}")
-    
+
     new_rent = calculate_rent(new_arena_size)
     old_rent = calculate_rent(old_arena_size)
 
@@ -127,4 +133,3 @@ def print_test_case(old_arena_size, new_arena_size) -> None:
     else:
         print(f"Rent increase: {new_rent - old_rent}")
 
-# ------------------------------------------------------------------------------
