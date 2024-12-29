@@ -9,6 +9,8 @@ from utils import (
 
 # ------------------------------------------------------------------------------
 
+DIVIDER_LENGTH: int = 20
+
 @dataclasses.dataclass
 class Player:
     age: int = 0
@@ -40,7 +42,6 @@ def print_value_predictions(players: list[Player], week, day) -> None:
         yell("No players found.", Msg_t.ERROR)
 
     headline: str = ""
-    DIVIDER_LENGTH: int = 20
     for p in players:
         rem_trainings: int = get_trainings_left(p, week, day)
         yell(DIVIDER_LENGTH * "-", Msg_t.INFO)
