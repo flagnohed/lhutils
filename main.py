@@ -3,10 +3,14 @@
 from arena import print_test_case
 from bs4 import BeautifulSoup
 from colorama import init
-from player import Player, print_value_predictions
 from re import match
 from sys import argv
 from roster import parse_roster
+from player import (
+    Player,
+    print_value_predictions,
+    get_trainings_left,
+)
 from transfer import (
     parse_transfers,
     parse_transfer_history,
@@ -58,7 +62,7 @@ def filter_players(players: list[Player], age_min: int, age_max: int, week: int,
                    day: int) -> list[Player]:
     fplayers: list[Player] = []
     for player in players:
-        trainings_left = player.get_trainings_left(week, day)
+        trainings_left = get_trainings_left(player, week, day)
         if player.age in PVT_DICT.keys() and age_min <= player.age <= age_max:
             # Get threshold and weekly increase for the relevant age.
             t, w = PVT_DICT[player.age]

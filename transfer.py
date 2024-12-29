@@ -20,6 +20,7 @@ class Transfer_t(Enum):
     FLIP = 3
 
 DATE_FORMAT: str = "%Y-%m-%d"
+
 # ------------------------------------------------------------------------------
 
 def parse_transfers(soup: BeautifulSoup) -> list[Player]:
@@ -66,8 +67,8 @@ def get_transfer_type(ttstr: str) -> Transfer_t:
     else:
         return Transfer_t.ERR
 
+# ------------------------------------------------------------------------------
 
-# todo: do this for Player also
 @dataclasses.dataclass
 class HistEntry:
     ttype: Transfer_t = Transfer_t.ERR
@@ -78,6 +79,8 @@ class HistEntry:
     transfer_sum: int = 0
     player_value: int = 0
     money_gained: int = 0
+
+# ------------------------------------------------------------------------------
 
 def parse_transfer_history(soup: BeautifulSoup) -> list[HistEntry]:
     entries: list[HistEntry] = []
@@ -97,6 +100,7 @@ def parse_transfer_history(soup: BeautifulSoup) -> list[HistEntry]:
 
     return entries
 
+# ------------------------------------------------------------------------------
 
 def print_hist_entry(e: HistEntry, rank: int) -> None:
     arrow: str = ""
@@ -118,6 +122,7 @@ def print_hist_entry(e: HistEntry, rank: int) -> None:
     if e.ttype != Transfer_t.FLIP:
         print(f"    Player value: {printable_num(e.player_value)} kr")
 
+# ------------------------------------------------------------------------------
 
 def show_top_entries(key_func, msg: str, entries: list[HistEntry],
                      num_players: int, r: bool):
@@ -127,6 +132,7 @@ def show_top_entries(key_func, msg: str, entries: list[HistEntry],
     for i in range(n):
         print_hist_entry(entries[i], i + 1)
 
+# ------------------------------------------------------------------------------
 
 def show_history(entries: list[HistEntry]) -> None:
 
@@ -179,3 +185,5 @@ def show_history(entries: list[HistEntry]) -> None:
 
     msg = f"\n===== {num_players} most lost (flipped players) ====="
     show_top_entries(lambda x: x.money_gained, msg, flipped, num_players, False)
+
+# ------------------------------------------------------------------------------

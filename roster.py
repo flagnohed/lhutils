@@ -2,10 +2,7 @@
 
 from bs4 import BeautifulSoup, PageElement, ResultSet
 from player import Player
-from utils import (
-    get_current_date,
-    numstr
-)
+from utils import numstr
 
 # ------------------------------------------------------------------------------
 
