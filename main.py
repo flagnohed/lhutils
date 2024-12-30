@@ -52,10 +52,11 @@ PVT_DICT: dict[int, tuple[int, int]] = {17: (5200000, 300000),
 
 # ------------------------------------------------------------------------------
 
-""" Filters out bad players, based on values in PVT_DICT.
-        Returns a list of players that passed the filter. """
-def filter_players(players: list[Player], age_min: int, age_max: int, week: int,
-                   day: int) -> list[Player]:
+
+def filter_players(players: list[Player], age_min: int, age_max: int,
+                   week: int, day: int) -> list[Player]:
+    """ Filters out bad players, based on values in PVT_DICT.
+    Returns a list of players that passed the filter. """
     fplayers: list[Player] = []
     for player in players:
         trainings_left = player.get_trainings_left(week, day)
@@ -72,7 +73,7 @@ def filter_players(players: list[Player], age_min: int, age_max: int, week: int,
                 fplayers += [player]
 
             elif player.age == 17 and trainings_left >= MAX_WEEKS - 1 and \
-                player.value >= 900000:
+                    player.value >= 900000:
                 fplayers += [player]
 
             elif player.age == 17 and player.value >= 4000000:
@@ -82,25 +83,26 @@ def filter_players(players: list[Player], age_min: int, age_max: int, week: int,
 
 # ------------------------------------------------------------------------------
 
-""" Determines if argument PARAM is a valid flag. """
+
 def is_flag(param: str) -> bool:
+    """ Determines if argument PARAM is a valid flag. """
     return param in ["-h", "--help", "-r", "--roster", "-t",
                      "--transfer", "-f", "--filter"]
 
 # ------------------------------------------------------------------------------
 
-""" Creates the necessary objects for parsing and
-        calls the correct parser function. """
-def parse(filename: str, short_flag: str) -> list[Player]:
-    players: list = []
 
+def parse(filename: str, short_flag: str) -> list[Player]:
+    """ Creates the necessary objects for parsing and
+        calls the correct parser function. """
+    players: list = []
     with open(filename, errors="ignore", mode='r') as file:
 
         if not bool(file.read(1)):
             yell(f"{filename} is empty.", Msg_t.ERROR)
 
         soup: BeautifulSoup = BeautifulSoup(file, "html.parser",
-                                        from_encoding="utf-8")
+                                            from_encoding="utf-8")
         # Parse current in-game date.
         week, day = get_current_date(soup)
         # We can trust that short_flag is a valid flag here.
@@ -117,27 +119,31 @@ def parse(filename: str, short_flag: str) -> list[Player]:
 
 # ------------------------------------------------------------------------------
 
-""" Prints usage information. Called if -h/--help flag present
-        or usage error detected. """
+
 def print_usage() -> None:
-    print(f"\nUsage: python3 main.py [options]\n")
+    """ Prints usage information. Called if -h/--help flag present
+        or usage error detected. """
+
+    print("\nUsage: python3 main.py [options]\n")
     print("-h, --help")
-    print("    Prints this information and quits.")
+    print("\tPrints this information and quits.")
     print("-r, --roster")
-    print("    Parse a team roster. Paste HTML into html/roster.html.")
+    print("\tParse a team roster. Paste HTML into html/roster.html.")
     print("-t, --transfer")
-    print("    Parse transfer list. Paste HTML into html/transfers.html.")
+    print("\tParse transfer list. Paste HTML into html/transfers.html.")
     print("-f, --filter LOW,MAX")
-    print("    Only show players with age between (including) LOW and MAX years.")
-    print("    If no age interval is provided, default values are used.")
-    print(f"    Current default values: MIN = {FILTER_DEFAULT_MIN}, MAX = {FILTER_DEFAULT_MAX}")
+    print("\tOnly show players with age between LOW and MAX years.")
+    print("\tIf no age interval is provided, default values are used.")
+    print("\tCurrent default values: ")
+    print(f"\tMIN = {FILTER_DEFAULT_MIN}, MAX = {FILTER_DEFAULT_MAX}")
     print("-a, --arena CAPACITY NEW_CAPACITY")
-    print("    Calculate how much it would cost to change capacity (build/demolish).")
-    print("    Also prints how many weeks it would take before arena being profitable,")
-    print("    as well as how much difference it will be in terms of rent.")
+    print("\tCalculate how much it costs to change capacity (build/demolish).")
+    print("\tAlso prints how many weeks until profit,")
+    print("\tas well as how much difference it will be in terms of rent.")
     exit()
 
 # ------------------------------------------------------------------------------
+
 
 def main():
     argc: int = len(argv)
@@ -164,7 +170,7 @@ def main():
             # Filter flag can be succeeded by age range (comma separated)
             # If not we just use the default values. This also applies
             # when the age range looks weird.
-            if i + 1 < len(args) and match("\d\d,[0-9]+", args[i + 1]):
+            if i + 1 < len(args) and match(r"\d\d,[0-9]+", args[i + 1]):
                 i = i + 1
                 age_min, age_max = [int(x) for x in args[i].split(',')]
         elif args[i] in ("-th", "--transfer-history"):
@@ -177,7 +183,7 @@ def main():
 
         elif args[i] in ("-a", "--arena"):
             if i + 2 < len(args) and args[i + 1].isnumeric() \
-                and args[i + 2].isnumeric():
+                    and args[i + 2].isnumeric():
                 print_test_case(int(args[i + 1]), int(args[i + 2]))
                 exit()
             else:
@@ -191,6 +197,7 @@ def main():
     print_value_predictions(players, week, day)
 
 # ------------------------------------------------------------------------------
+
 
 if __name__ == "__main__":
     main()
