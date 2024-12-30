@@ -133,3 +133,4 @@ def print_test_case(old_arena_size, new_arena_size) -> None:
     else:
         print(f"Rent increase: {new_rent - old_rent}")
 
+# ------------------------------------------------------------------------------
