@@ -173,7 +173,7 @@ def main():
                 age_min, age_max = [int(x) for x in args[i].split(',')]
         elif args[i] in ("-th", "--transfer-history"):
             if filter:
-                yell("Filter not compatible with transfer history.",
+                yell("Filter not yet compatible with transfer history.",
                      Msg_t.ERROR)
             players, _, _ = parse(FILE_TRANSFER_HISTORY, "-th")
             show_history(players)

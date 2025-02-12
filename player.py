@@ -20,7 +20,7 @@ class Player:
     idx: int = 0    # 1-based index for transfers.
     name: str = ""
     pos: str = ""
-    bid: str = ""   # Starting bid in parenthesis if no bids. 	 
+    bid: str = ""   # Starting bid in parenthesis if no bids.
 
 # ------------------------------------------------------------------------------
 
@@ -56,7 +56,8 @@ def print_value_predictions(players: list[Player], week, day) -> None:
         yell(headline, Msg_t.APP)
         yell(f"Värde:	{printable_num(p.value)} kr", Msg_t.APP)
         if p.age == 17:
-            # Players over the age of 17 rarely develop at 300k/w
+            # Players over the age of 17 rarely develop at 300k/w.
+            # And if they do, they're shit.
             yell(f"300k/w: {printable_num(p.value + rem_trainings * 300000)} kr",
                  Msg_t.APP)
 
@@ -66,6 +67,7 @@ def print_value_predictions(players: list[Player], week, day) -> None:
              Msg_t.APP)
 
         if p.age > 17:
+            # This rarely happens even for 18, so this threshold could be increased.
             yell(f"600k/w: {printable_num(p.value + rem_trainings * 600000)} kr",
                  Msg_t.APP)
 
