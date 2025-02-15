@@ -1,15 +1,20 @@
 #!/usr/bin/env python3
 
-from arena import print_test_case
 from bs4 import BeautifulSoup
-from colorama import init
+import colorama
 from re import match
 from sys import argv
+from time import time
+
+from arena import print_test_case
+# from game import parse_game
 from roster import parse_roster
 from player import (
     Player,
     print_value_predictions,
     get_trainings_left,
+    MAX_WEEKS,
+    MAX_DAYS,
 )
 from transfer import (
     parse_transfers,
@@ -17,15 +22,18 @@ from transfer import (
     show_history,
 )
 from utils import (
+    numstr,
     get_current_date,
     Msg_t,
     yell,
+    printable_num,
 )
 
 # ------------------------------------------------------------------------------
 # Constants
 # ------------------------------------------------------------------------------
 
+FILE_GAME: str = "html/game.html"
 FILE_ROSTER: str = "html/roster.html"
 FILE_TRANSFER: str = "html/transfers.html"
 FILE_TRANSFER_HISTORY: str = "html/transfer_history.html"
@@ -36,6 +44,7 @@ MAX_DAYS: int = 7
 MAX_WEEKS: int = 13
 FILTER_DEFAULT_MIN: int = 17
 FILTER_DEFAULT_MAX: int = 22
+DEFAULT_BUDGET: int = 20000000
 
 # Predicted Value Thresholds
 # |-----|------|-----------------|
@@ -56,11 +65,11 @@ PVT_DICT: dict[int, tuple[int, int]] = {17: (5200000, 300000),
 
 # ------------------------------------------------------------------------------
 
-
 def filter_players(players: list[Player], age_min: int, age_max: int,
-                   week: int, day: int) -> list[Player]:
+                   week: int, day: int, budget: int) -> list[Player]:
     """ Filters out bad players, based on values in PVT_DICT.
-    Returns a list of players that passed the filter. """
+    Returns a list of players that passed the filter. 
+    budget == 0 --> no limit """
     fplayers: list[Player] = []
     for player in players:
         trainings_left = get_trainings_left(player, week, day)
@@ -73,20 +82,27 @@ def filter_players(players: list[Player], age_min: int, age_max: int,
             player just turned 17 OR
             player value already has a close-to-threshold value
             """
+            # If it's a transfer listed player, and user entered a budget,
+            # skip if user can't afford.
+            if player.bid and budget and int(numstr(player.bid)) > budget:
+                continue
+
             if player.value + trainings_left * w >= t:
+                player.note = f"[Can surpass {t} kr]"
                 fplayers += [player]
 
             elif player.age == 17 and trainings_left >= MAX_WEEKS - 1 and \
                     player.value >= 900000:
+                player.note = f"[Freshly drawn]"
                 fplayers += [player]
 
             elif player.age == 17 and player.value >= 4000000:
+                player.note = "[Hidden gem?]"
                 fplayers += [player]
 
     return fplayers
 
 # ------------------------------------------------------------------------------
-
 
 def is_flag(param: str) -> bool:
     """ Determines if argument PARAM is a valid flag. """
@@ -95,8 +111,7 @@ def is_flag(param: str) -> bool:
 
 # ------------------------------------------------------------------------------
 
-
-def parse(filename: str, short_flag: str) -> list[Player]:
+def parse(filename: str, short_flag: str) -> tuple[list[Player], int, int]:
     """ Creates the necessary objects for parsing and
         calls the correct parser function. """
     players: list = []
@@ -116,13 +131,14 @@ def parse(filename: str, short_flag: str) -> list[Player]:
             players = parse_transfers(soup)
         elif short_flag == "-th":
             players = parse_transfer_history(soup)
+        # elif short_flag == "-g":
+        #     parse_game(soup)
         else:
             yell("This should not happen.", Msg_t.ERROR)
 
     return players, week, day
 
 # ------------------------------------------------------------------------------
-
 
 def print_usage() -> None:
     """ Prints usage information. Called if -h/--help flag present
@@ -148,18 +164,19 @@ def print_usage() -> None:
 
 # ------------------------------------------------------------------------------
 
-
 def main():
+    start: float = time()
     argc: int = len(argv)
     if argc < ARGC_MIN or argc > ARGC_MAX:
         print_usage()
 
+    budget: int = 0
     filter: bool = False
     age_min: int = FILTER_DEFAULT_MIN
     age_max: int = FILTER_DEFAULT_MAX
     args: list[str] = argv[1:]
     players: list = []  # can contain Players or HistEntries
-    init()              # <--- colors in terminal
+    colorama.init()              # <--- colors in terminal
     # Parse arguments
     for i in range(len(args)):
         if args[i] in ("-h", "--help"):
@@ -192,16 +209,36 @@ def main():
                 exit()
             else:
                 print_usage()
+        
+        elif args[i] in ("-g", "--game"):
+            parse(FILE_GAME, "-g")
+
+        elif args[i] in ("-b", "--budget"):
+            if i + 1 < len(args) and args[i + 1].isnumeric():
+                budget = int(args[i + 1])
+            else:
+                budget = DEFAULT_BUDGET
+                yell("Note: invalid budget.", Msg_t.INFO)
+                yell(f"Resorting to DEFAULT_BUDGET = {printable_num(budget)} kr", 
+                     Msg_t.INFO)
 
         else:
             print_usage()
 
-    players = filter_players(players, age_min, age_max, week, day) \
-        if filter else players
+    num_total_players: int = len(players)
+
+    if filter:
+        players = filter_players(players, age_min, age_max, week, day, budget)
+
     print_value_predictions(players, week, day)
+    end: float = time()
+
+    yell(f"Total players parsed: {num_total_players}")
+    if filter:
+        yell(f"Players after filtering: {len(players)}")
+    yell(f"Time elapsed: {end - start}s")
 
 # ------------------------------------------------------------------------------
-
 
 if __name__ == "__main__":
     main()

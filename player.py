@@ -9,7 +9,9 @@ from utils import (
 
 # ------------------------------------------------------------------------------
 
-DIVIDER_LENGTH: int = 20
+DIVIDER_LENGTH: int = 30
+MAX_WEEKS: int = 13
+MAX_DAYS: int = 7
 
 @dataclasses.dataclass
 class Player:
@@ -21,6 +23,7 @@ class Player:
     name: str = ""
     pos: str = ""
     bid: str = ""   # Starting bid in parenthesis if no bids.
+    note: str = ""  
 
 # ------------------------------------------------------------------------------
 
@@ -28,8 +31,14 @@ def get_trainings_left(player: Player, week: int, day: int) -> int:
         """ Gets the number of training occasions remaining 
             before birthday. """
         wdiff: int = (player.bweek - week) % 13
+        if wdiff == 0 and day > player.bday:
+            # This happens if the player already have had his birthday,
+            # but we are still in that week.
+            wdiff = MAX_WEEKS
+
         dose_reset: bool = day == 7	
         last_training: bool = player.bday == 7
+
         return wdiff + int(last_training) - int(dose_reset)
 
 # ------------------------------------------------------------------------------
@@ -55,6 +64,7 @@ def print_value_predictions(players: list[Player], week, day) -> None:
 
         yell(headline, Msg_t.APP)
         yell(f"Värde:	{printable_num(p.value)} kr", Msg_t.APP)
+        
         if p.age == 17:
             # Players over the age of 17 rarely develop at 300k/w.
             # And if they do, they're shit.
@@ -66,9 +76,14 @@ def print_value_predictions(players: list[Player], week, day) -> None:
         yell(f"500k/w: {printable_num(p.value + rem_trainings * 500000)} kr",
              Msg_t.APP)
 
-        if p.age > 17:
-            # This rarely happens even for 18, so this threshold could be increased.
+        if p.age > 18:
             yell(f"600k/w: {printable_num(p.value + rem_trainings * 600000)} kr",
+                 Msg_t.APP)
+            yell(f"700k/w: {printable_num(p.value + rem_trainings * 700000)} kr",
+                 Msg_t.APP)
+            
+        if p.age > 19:
+            yell(f"800k/w: {printable_num(p.value + rem_trainings * 800000)} kr",
                  Msg_t.APP)
 
     yell(DIVIDER_LENGTH * "-", Msg_t.INFO)

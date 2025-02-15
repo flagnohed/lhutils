@@ -19,7 +19,7 @@ class Msg_t(Enum):
 # ------------------------------------------------------------------------------
 
 """ Yell to the terminal in color depending on mood. """
-def yell(msg: str, lvl: Msg_t):
+def yell(msg: str, lvl: Msg_t = Msg_t.INFO):
     if lvl == Msg_t.APP:
         color = CLR_APP
     elif lvl == Msg_t.INFO:
