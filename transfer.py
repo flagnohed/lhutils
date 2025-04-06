@@ -176,3 +176,6 @@ def show_history(entries: list[HistEntry]) -> None:
     msg = f"\n===== {num_players} most lost (flipped players) ====="
     show_top_entries(lambda x: x.money_gained, msg, flipped,
                      num_players, False)
+
+    msg = f"\n===== {num_players} most bought from (team) ====="
+    msg = f"\n===== {num_players} most sold to (team) ====="
