@@ -88,7 +88,7 @@ def filter_players(players: list[Player], age_min: int, age_max: int,
                 continue
 
             if player.value + trainings_left * w >= t:
-                player.note = f"[Can surpass {t} kr]"
+                player.note = f"[Can surpass {printable_num(t)} kr]"
                 fplayers += [player]
 
             elif player.age == 17 and trainings_left >= MAX_WEEKS - 1 and \

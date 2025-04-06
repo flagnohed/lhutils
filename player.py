@@ -57,13 +57,13 @@ def print_value_predictions(players: list[Player], week, day) -> None:
 
         if p.idx:
             # This means we have parsed the transfer list
-            headline = f"{p.idx}. {p.name}, {p.age}, {p.bid}, {p.pos}"
+            headline = f"{p.idx}. {p.name}, {p.age}, {p.bid}, {p.pos}, {p.note}"
         else:
             # At the moment this can only be roster
             headline = f"{p.name}, {p.age}, {p.pos}"
 
         yell(headline, Msg_t.APP)
-        yell(f"Värde:	{printable_num(p.value)} kr", Msg_t.APP)
+        yell(f"Värde :	 {printable_num(p.value)} kr", Msg_t.APP)
         
         if p.age == 17:
             # Players over the age of 17 rarely develop at 300k/w.
