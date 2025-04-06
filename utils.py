@@ -1,25 +1,22 @@
-# ------------------------------------------------------------------------------
-
 from bs4 import BeautifulSoup
 from enum import Enum
 from termcolor import colored
 from unicodedata import normalize
 
-# ------------------------------------------------------------------------------
 
 CLR_APP: str = "white"
 CLR_INFO: str = "green"
 CLR_ERROR: str = "red"
+
 
 class Msg_t(Enum):
     APP = 0		# The actual output of the program
     INFO = 1	# Status update/other information
     ERROR = 2	# Something went wrong
 
-# ------------------------------------------------------------------------------
 
-""" Yell to the terminal in color depending on mood. """
 def yell(msg: str, lvl: Msg_t = Msg_t.INFO):
+    """ Yell to the terminal in color depending on mood. """
     if lvl == Msg_t.APP:
         color = CLR_APP
     elif lvl == Msg_t.INFO:
@@ -33,15 +30,6 @@ def yell(msg: str, lvl: Msg_t = Msg_t.INFO):
     if lvl == Msg_t.ERROR:
         exit()
 
-# ------------------------------------------------------------------------------
-
-def get_current_date(soup: BeautifulSoup) -> list:
-    #  Find the current date (in game) in the HTML file
-    current_date_str = soup.find(id="topmenurightdateinner").get_text()
-    clean_str = normalize("NFKD", current_date_str)
-    return [int(a) for a in clean_str.split(' ') if a.isnumeric()]
-
-# ------------------------------------------------------------------------------
 
 def printable_num(num: int) -> str:
     """ Takes an integer, converts it to a string.
@@ -59,13 +47,11 @@ def printable_num(num: int) -> str:
 
     return pretty_str[::-1]
 
-# ------------------------------------------------------------------------------
 
 def numstr(s: str) -> str:
     """ Extract numbers from a string and return those as a new string. """
     return ''.join([c for c in s if c.isdigit()])
 
-# ------------------------------------------------------------------------------
 
 """ Strips S of trailing and leading whitespace. """
 def wstext2int(s: str) -> str:
@@ -85,5 +71,3 @@ def wstext2int(s: str) -> str:
             break
 
     return s[i1:i2]
-
-# ------------------------------------------------------------------------------

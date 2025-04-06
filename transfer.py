@@ -1,8 +1,5 @@
-# ------------------------------------------------------------------------------
-
 from bs4 import BeautifulSoup, PageElement, ResultSet
 import dataclasses
-from datetime import date
 from enum import Enum
 from player import Player
 from utils import (
@@ -13,15 +10,16 @@ from utils import (
     yell,
 )
 
+
 class Transfer_t(Enum):
     ERR = 0
     BUY = 1
     SELL = 2
     FLIP = 3
 
+
 DATE_FORMAT: str = "%Y-%m-%d"
 
-# ------------------------------------------------------------------------------
 
 def parse_transfers(soup: BeautifulSoup) -> list[Player]:
 
@@ -39,7 +37,7 @@ def parse_transfers(soup: BeautifulSoup) -> list[Player]:
         player: Player = Player()
         info: list[str] = [s for s in div.stripped_strings]
 
-        # info has kind of a weird structure:
+        # Info has kind of a weird structure:
         # [idx, player_name, ',', 'x år', '(W-D), pos, shoots]
 
         player.name = info[1]
@@ -57,7 +55,6 @@ def parse_transfers(soup: BeautifulSoup) -> list[Player]:
 
     return players
 
-# ------------------------------------------------------------------------------
 
 def get_transfer_type(ttstr: str) -> Transfer_t:
     if ttstr == "Sålt":
@@ -67,7 +64,6 @@ def get_transfer_type(ttstr: str) -> Transfer_t:
     else:
         return Transfer_t.ERR
 
-# ------------------------------------------------------------------------------
 
 @dataclasses.dataclass
 class HistEntry:
@@ -80,7 +76,6 @@ class HistEntry:
     player_value: int = 0
     money_gained: int = 0
 
-# ------------------------------------------------------------------------------
 
 def parse_transfer_history(soup: BeautifulSoup) -> list[HistEntry]:
     entries: list[HistEntry] = []
@@ -100,7 +95,6 @@ def parse_transfer_history(soup: BeautifulSoup) -> list[HistEntry]:
 
     return entries
 
-# ------------------------------------------------------------------------------
 
 def print_hist_entry(e: HistEntry, rank: int) -> None:
     arrow: str = ""
@@ -122,7 +116,6 @@ def print_hist_entry(e: HistEntry, rank: int) -> None:
     if e.ttype != Transfer_t.FLIP:
         print(f"    Player value: {printable_num(e.player_value)} kr")
 
-# ------------------------------------------------------------------------------
 
 def show_top_entries(key_func, msg: str, entries: list[HistEntry],
                      num_players: int, r: bool):
@@ -132,7 +125,6 @@ def show_top_entries(key_func, msg: str, entries: list[HistEntry],
     for i in range(n):
         print_hist_entry(entries[i], i + 1)
 
-# ------------------------------------------------------------------------------
 
 def show_history(entries: list[HistEntry]) -> None:
 
@@ -185,5 +177,3 @@ def show_history(entries: list[HistEntry]) -> None:
 
     msg = f"\n===== {num_players} most lost (flipped players) ====="
     show_top_entries(lambda x: x.money_gained, msg, flipped, num_players, False)
-
-# ------------------------------------------------------------------------------

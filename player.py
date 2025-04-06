@@ -1,5 +1,3 @@
-# ------------------------------------------------------------------------------
-
 import dataclasses
 from utils import (
     Msg_t,
@@ -7,11 +5,11 @@ from utils import (
     printable_num
 )
 
-# ------------------------------------------------------------------------------
 
 DIVIDER_LENGTH: int = 30
 MAX_WEEKS: int = 13
 MAX_DAYS: int = 7
+
 
 @dataclasses.dataclass
 class Player:
@@ -25,7 +23,6 @@ class Player:
     bid: str = ""   # Starting bid in parenthesis if no bids.
     note: str = ""  
 
-# ------------------------------------------------------------------------------
 
 def get_trainings_left(player: Player, week: int, day: int) -> int:
         """ Gets the number of training occasions remaining 
@@ -36,12 +33,11 @@ def get_trainings_left(player: Player, week: int, day: int) -> int:
             # but we are still in that week.
             wdiff = MAX_WEEKS
 
-        dose_reset: bool = day == 7	
-        last_training: bool = player.bday == 7
+        dose_reset: bool = day == MAX_DAYS	
+        last_training: bool = player.bday == MAX_DAYS
 
         return wdiff + int(last_training) - int(dose_reset)
 
-# ------------------------------------------------------------------------------
 
 def print_value_predictions(players: list[Player], week, day) -> None:
     """ Predicts the value of a player at the end of 
@@ -87,5 +83,3 @@ def print_value_predictions(players: list[Player], week, day) -> None:
                  Msg_t.APP)
 
     yell(DIVIDER_LENGTH * "-", Msg_t.INFO)
-
-# ------------------------------------------------------------------------------

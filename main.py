@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from unicodedata import normalize
 from bs4 import BeautifulSoup
 import colorama
 from re import match
@@ -14,7 +15,6 @@ from player import (
     print_value_predictions,
     get_trainings_left,
     MAX_WEEKS,
-    MAX_DAYS,
 )
 from transfer import (
     parse_transfers,
@@ -23,7 +23,6 @@ from transfer import (
 )
 from utils import (
     numstr,
-    get_current_date,
     Msg_t,
     yell,
     printable_num,
@@ -40,8 +39,6 @@ FILE_TRANSFER_HISTORY: str = "html/transfer_history.html"
 
 ARGC_MIN: int = 2
 ARGC_MAX: int = 4
-MAX_DAYS: int = 7
-MAX_WEEKS: int = 13
 FILTER_DEFAULT_MIN: int = 17
 FILTER_DEFAULT_MAX: int = 22
 DEFAULT_BUDGET: int = 20000000
@@ -56,14 +53,13 @@ DEFAULT_BUDGET: int = 20000000
 # | 21  | 30m  | 700k            |
 # | 22  | 40m  | 700k            |
 # |-----|------|-----------------|
-PVT_DICT: dict[int, tuple[int, int]] = {17: (5200000, 300000),
+PVT_DICT: dict[int, tuple[int, int]] = {17: (5000000, 300000),
                                         18: (11000000, 400000),
-                                        19: (16000000, 500000),
-                                        20: (20000000, 600000),
-                                        21: (30000000, 700000),
-                                        22: (40000000, 700000)}
+                                        19: (17000000, 500000),
+                                        20: (23000000, 600000),
+                                        21: (35000000, 700000),
+                                        22: (50000000, 700000)}
 
-# ------------------------------------------------------------------------------
 
 def filter_players(players: list[Player], age_min: int, age_max: int,
                    week: int, day: int, budget: int) -> list[Player]:
@@ -102,14 +98,19 @@ def filter_players(players: list[Player], age_min: int, age_max: int,
 
     return fplayers
 
-# ------------------------------------------------------------------------------
+
+def get_current_date(soup: BeautifulSoup) -> list:
+    #  Find the current date (in game) in the HTML file
+    current_date_str = soup.find(id="topmenurightdateinner").get_text()
+    clean_str = normalize("NFKD", current_date_str)
+    return [int(a) for a in clean_str.split(' ') if a.isnumeric()]
+
 
 def is_flag(param: str) -> bool:
     """ Determines if argument PARAM is a valid flag. """
     return param in ["-h", "--help", "-r", "--roster", "-t",
                      "--transfer", "-f", "--filter"]
 
-# ------------------------------------------------------------------------------
 
 def parse(filename: str, short_flag: str) -> tuple[list[Player], int, int]:
     """ Creates the necessary objects for parsing and
@@ -138,7 +139,6 @@ def parse(filename: str, short_flag: str) -> tuple[list[Player], int, int]:
 
     return players, week, day
 
-# ------------------------------------------------------------------------------
 
 def print_usage() -> None:
     """ Prints usage information. Called if -h/--help flag present
@@ -162,7 +162,6 @@ def print_usage() -> None:
     print("\tas well as how much difference it will be in terms of rent.")
     exit()
 
-# ------------------------------------------------------------------------------
 
 def main():
     start: float = time()
@@ -238,9 +237,6 @@ def main():
         yell(f"Players after filtering: {len(players)}")
     yell(f"Time elapsed: {end - start}s")
 
-# ------------------------------------------------------------------------------
 
 if __name__ == "__main__":
     main()
-
-# ------------------------------------------------------------------------------

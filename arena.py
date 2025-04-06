@@ -1,5 +1,3 @@
-# ------------------------------------------------------------------------------
-
 # Seats
 CUR_SHORT: int = 12500
 CUR_LONG: int = 30000
@@ -20,10 +18,9 @@ COSTS_PER_SEAT: dict[int, tuple[int, int, int]] = {
     # We don't care about div 6, impossible to be that bad.
 }
 
-# ------------------------------------------------------------------------------
 
-""" Calculates the rent costs based on arena size. """
 def calculate_rent(arena_size: int) -> int:
+    """ Calculates the rent costs based on arena size. """
     rent: int = 0
     short, long, vip = get_best_proportions(arena_size)
     # Kortsida
@@ -42,7 +39,6 @@ def calculate_rent(arena_size: int) -> int:
 
     return rent
 
-# ------------------------------------------------------------------------------
 
 def get_best_proportions(arena_size: int) -> tuple[int, int, int]:
     best_short = int(arena_size * 0.25)
@@ -50,7 +46,6 @@ def get_best_proportions(arena_size: int) -> tuple[int, int, int]:
     best_vip = int(arena_size * 0.15)
     return best_short, best_long, best_vip
 
-# ------------------------------------------------------------------------------
 
 def calculate_demolition_cost(old_arena_size: int, new_arena_size: int) -> int:
     if new_arena_size > old_arena_size:
@@ -63,7 +58,6 @@ def calculate_demolition_cost(old_arena_size: int, new_arena_size: int) -> int:
             old_arena_size - new_arena_size)
     return 200000 + 30 * seats_short + 40 * seats_long + 60 * seats_vip
 
-# ------------------------------------------------------------------------------
 
 def calculate_building_cost(old_arena_size: int, new_arena_size: int) -> int:
     if new_arena_size < old_arena_size:
@@ -71,33 +65,28 @@ def calculate_building_cost(old_arena_size: int, new_arena_size: int) -> int:
         exit()
     elif new_arena_size == old_arena_size:
         return 0
-
     # Get how many seats of each sort we need to build
     seats_short, seats_long, seats_vip = get_best_proportions(
             new_arena_size - old_arena_size)
     return 350000 + 175 * seats_short + 300 * seats_long + 1500 * seats_vip
 
-# ------------------------------------------------------------------------------
 
 def calculate_income(arena_size: int, division: int) -> int:
     short_seats, long_seats, vip_seats = get_best_proportions(arena_size)
     cps_short, cps_long, cps_vip = COSTS_PER_SEAT[division]
     income = short_seats * cps_short + long_seats * cps_long + \
             vip_seats * cps_vip
-
     return income
 
-# ------------------------------------------------------------------------------
 
 def print_percentages(short: int, long: int, vip: int):
     print(f"Kortsida: {short / CUR_TOTAL}")
     print(f"Långsida: {long / CUR_TOTAL}")
     print(f"VIP:      {vip / CUR_TOTAL}")
 
-# ------------------------------------------------------------------------------
 
-"""Main driver. Called from main.py. """
 def print_test_case(old_arena_size, new_arena_size) -> None:
+    """Main driver. Called from main.py. """
     build_cost: int = 0
     demolition_cost: int = 0
     print("----------")
@@ -132,5 +121,3 @@ def print_test_case(old_arena_size, new_arena_size) -> None:
         print(f"{weeks_until_profit} weeks before making profit")
     else:
         print(f"Rent increase: {new_rent - old_rent}")
-
-# ------------------------------------------------------------------------------

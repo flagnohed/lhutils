@@ -1,7 +1,6 @@
 from itertools import combinations
 from utils import yell, Msg_t
 
-# ------------------------------------------------------------------------------
 
 TACTICS = {
     "343432":
@@ -18,7 +17,6 @@ TACTICS = {
     "ABABCABABCABABCABABCABABCABABCABABCABABCABABCABABCABABCABABCABABC"
 }
 
-# ------------------------------------------------------------------------------
 
 def get_matchup_count(t1: str, t2: str) -> dict[str, int]:
     if len(t1) != len(t2) or t1 not in TACTICS.keys() or \
@@ -27,20 +25,20 @@ def get_matchup_count(t1: str, t2: str) -> dict[str, int]:
 
     meetings: dict[str, int] = {}
     
-    # lseq1 and lseq2 are guaranteed to be of the same length.
     lseq1: str = TACTICS[t1]
     lseq2: str = TACTICS[t2]
+    assert len(lseq1) == len(lseq2)
 
     for i in range(len(lseq1)):
         combo: str = lseq1[i] + lseq2[i]
         if combo in meetings.keys():
             meetings[combo] += 1
         else:
+            # Path taken on first encounter of current combo
             meetings[combo] = 1
     
     return meetings
 
-# ------------------------------------------------------------------------------
 
 def print_matchup_percentage(meetings: dict[str, int], 
                              show_matchups: bool = False) -> float:
@@ -67,16 +65,15 @@ def print_matchup_percentage(meetings: dict[str, int],
 def test_compare_tactics() -> None:
     """ Get every tactic combination, and print how often 
         our team will play a 'better' line than the opps. """
+    
     for matchup in combinations(TACTICS.keys(), 2):
         t1, t2 = matchup
-        meetings: dict[str, int] = get_matchup_count(t1, t2)
-        print(f"{t1} vs {t2}")
-        print_matchup_percentage(meetings)
+        yell(f"===== Matchup: {t1} vs {t2} =====")
+        meetings_unsorted = get_matchup_count(t1, t2)
+        meetings = {k: v for k, v in sorted(meetings_unsorted.items(), 
+                                            key=lambda x: x[1], reverse=True)}
+        print_matchup_percentage(meetings, True)
 
-
-# ------------------------------------------------------------------------------
 
 if __name__ == "__main__":
     test_compare_tactics()
-
-# ------------------------------------------------------------------------------
