@@ -30,8 +30,8 @@ def parse_transfers(soup: BeautifulSoup) -> list[Player]:
     div: PageElement = None
 
     information: ResultSet = soup.find_all("div", {"class":"ts_collapsed_1"})
-    values: ResultSet = soup.find_all("div", {"class":"ts_collapsed_3"})
-    bids: ResultSet = soup.find_all("div", {"class":"ts_collapsed_5"})
+    values: ResultSet      = soup.find_all("div", {"class":"ts_collapsed_3"})
+    bids: ResultSet        = soup.find_all("div", {"class":"ts_collapsed_5"})
 
     for i, div in enumerate(information):
         player: Player = Player()
@@ -45,11 +45,9 @@ def parse_transfers(soup: BeautifulSoup) -> list[Player]:
         bdate_str: str = numstr(info[4])
         player.bday = int(bdate_str[-1])    # last digit is bday,
         player.bweek = int(bdate_str[:-1])  # and the rest is bweek.
-
         player.pos = info[4].split(", ")[1]
         player.value = int(numstr(values[i].get_text()))
         player.bid = wstext2int(bids[i].get_text())
-
         player.idx = i + 1
         players += [player]
 
@@ -61,17 +59,17 @@ def get_transfer_type(ttstr: str) -> Transfer_t:
         return Transfer_t.SELL
     elif ttstr == "Köpt":
         return Transfer_t.BUY
-    else:
-        return Transfer_t.ERR
+
+    return Transfer_t.ERR
 
 
 @dataclasses.dataclass
 class HistEntry:
     ttype: Transfer_t = Transfer_t.ERR
-    date: str = ""
-    name: str = ""
+    date: str       = ""
+    name: str       = ""
     other_team: str = ""    # new/old team depending on transfer type
-    age: int = 0
+    age: int          = 0
     transfer_sum: int = 0
     player_value: int = 0
     money_gained: int = 0
@@ -128,8 +126,8 @@ def show_top_entries(key_func, msg: str, entries: list[HistEntry],
 
 def show_history(entries: list[HistEntry]) -> None:
 
-    bought: list[HistEntry] = []
-    sold: list[HistEntry] = []
+    bought: list[HistEntry]  = []
+    sold: list[HistEntry]    = []
     flipped: list[HistEntry] = []
     bidx: int = -1
     msg: str = ""

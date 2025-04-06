@@ -16,6 +16,7 @@ from player import (
     get_trainings_left,
     MAX_WEEKS,
 )
+from tactics import compare_tactics, TACTICS
 from transfer import (
     parse_transfers,
     parse_transfer_history,
@@ -112,6 +113,10 @@ def is_flag(param: str) -> bool:
                      "--transfer", "-f", "--filter"]
 
 
+def is_valid_tactic(t: str) -> bool:
+    return t in TACTICS.keys()
+
+
 def parse(filename: str, short_flag: str) -> tuple[list[Player], int, int]:
     """ Creates the necessary objects for parsing and
         calls the correct parser function. """
@@ -143,23 +148,31 @@ def parse(filename: str, short_flag: str) -> tuple[list[Player], int, int]:
 def print_usage() -> None:
     """ Prints usage information. Called if -h/--help flag present
         or usage error detected. """
-
-    print("\nUsage: python3 main.py [options]\n")
+    print("Usage: python3 main.py [options]\n")
+    print("Options:\n")
     print("-h, --help")
-    print("\tPrints this information and quits.")
-    print("-r, --roster")
-    print("\tParse a team roster. Paste HTML into html/roster.html.")
-    print("-t, --transfer")
-    print("\tParse transfer list. Paste HTML into html/transfers.html.")
-    print("-f, --filter LOW,MAX")
-    print("\tOnly show players with age between LOW and MAX years.")
-    print("\tIf no age interval is provided, default values are used.")
-    print("\tCurrent default values: ")
-    print(f"\tMIN = {FILTER_DEFAULT_MIN}, MAX = {FILTER_DEFAULT_MAX}")
+    print("    Prints this information and quits.\n")
     print("-a, --arena CAPACITY NEW_CAPACITY")
-    print("\tCalculate how much it costs to change capacity (build/demolish).")
-    print("\tAlso prints how many weeks until profit,")
-    print("\tas well as how much difference it will be in terms of rent.")
+    print("    Calculate how much it costs to change capacity (build/demolish).")
+    print("    Also prints how many weeks until profit,")
+    print("    as well as how much difference it will be in terms of rent.\n")
+    print("-f, --filter LOW,MAX")
+    print("    Only show players with age between LOW and MAX years.")
+    print("    If no age interval is provided, default values are used.")
+    print("    Current default values: ")
+    print("    MIN = {}, MAX = {}".format(FILTER_DEFAULT_MIN, FILTER_DEFAULT_MAX))
+    print("    Filter should never be standalone. It should always come with")
+    print("    either transfer or roster.\n")
+    print("-r, --roster")
+    print("    Parse a team roster. Paste HTML into html/roster.html.\n")
+    print("-tx, --tactics TACTIC")
+    print("    Compare TACTIC to other tactics to see how often certain")
+    print("    lines play against certain oppositional lines. TACTIC can")
+    print("    be left blank to compare all tactics against eachother.\n")
+    print("-t, --transfer")
+    print("    Parse transfer list. Paste HTML into html/transfers.html.")
+    
+    
     exit()
 
 
@@ -180,8 +193,10 @@ def main():
     for i in range(len(args)):
         if args[i] in ("-h", "--help"):
             print_usage()
+
         elif args[i] in ("-r", "--roster"):
             players, week, day = parse(FILE_ROSTER, "-r")
+
         elif args[i] in ("-t", "--transfer"):
             players, week, day = parse(FILE_TRANSFER, "-t")
 
@@ -193,6 +208,7 @@ def main():
             if i + 1 < len(args) and match(r"\d\d,[0-9]+", args[i + 1]):
                 i = i + 1
                 age_min, age_max = [int(x) for x in args[i].split(',')]
+
         elif args[i] in ("-th", "--transfer-history"):
             if filter:
                 yell("Filter not yet compatible with transfer history.",
@@ -210,6 +226,7 @@ def main():
                 print_usage()
         
         elif args[i] in ("-g", "--game"):
+            # Under construction
             parse(FILE_GAME, "-g")
 
         elif args[i] in ("-b", "--budget"):
@@ -220,6 +237,12 @@ def main():
                 yell("Note: invalid budget.", Msg_t.INFO)
                 yell(f"Resorting to DEFAULT_BUDGET = {printable_num(budget)} kr", 
                      Msg_t.INFO)
+
+        elif args[i] in ("-tx", "--tactics"):
+            t1 = ""
+            if i + 1 < len(args) and is_valid_tactic(args[i + 1]):
+                t1 = args[i + 1]
+            compare_tactics(t1)
 
         else:
             print_usage()

@@ -62,18 +62,19 @@ def print_matchup_percentage(meetings: dict[str, int],
     yell("Percentage with better line on ice: %.2f" % percentage + "%", Msg_t.INFO)
 
 
-def test_compare_tactics() -> None:
+def compare_tactics(t1: str) -> None:
     """ Get every tactic combination, and print how often 
         our team will play a 'better' line than the opps. """
     
-    for matchup in combinations(TACTICS.keys(), 2):
-        t1, t2 = matchup
+    matchups = list(combinations(TACTICS.keys(), 2))
+    if t1:
+        # Only include matchups where supplied 
+        # tactic is present.
+        matchups = [x for x in matchups if x[0] == t1]
+
+    for t1, t2 in matchups:
         yell(f"===== Matchup: {t1} vs {t2} =====")
         meetings_unsorted = get_matchup_count(t1, t2)
         meetings = {k: v for k, v in sorted(meetings_unsorted.items(), 
                                             key=lambda x: x[1], reverse=True)}
         print_matchup_percentage(meetings, True)
-
-
-if __name__ == "__main__":
-    test_compare_tactics()
