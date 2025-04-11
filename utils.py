@@ -1,3 +1,5 @@
+""" Commonly used functions across entire applications are placed here. """
+import sys
 from enum import Enum
 from termcolor import colored
 
@@ -7,26 +9,28 @@ CLR_INFO: str = "green"
 CLR_ERROR: str = "red"
 
 
-class Msg_t(Enum):
+class MsgType(Enum):
+    """ Type of application message. Determines color in terminal. """
     APP = 0		# The actual output of the program
     INFO = 1	# Status update/other information
     ERROR = 2	# Something went wrong
 
 
-def yell(msg: str, lvl: Msg_t = Msg_t.INFO):
+def yell(msg: str, lvl: MsgType = MsgType.INFO):
     """ Yell to the terminal in color depending on mood. """
-    if lvl == Msg_t.APP:
+    if lvl == MsgType.APP:
         color = CLR_APP
-    elif lvl == Msg_t.INFO:
+    elif lvl == MsgType.INFO:
         color = CLR_INFO
-    elif lvl == Msg_t.ERROR:
+    elif lvl == MsgType.ERROR:
         color = CLR_ERROR
     else:
-        yell("Unknown message type!", Msg_t.ERROR)
+        yell("Unknown message type!", MsgType.ERROR)
+        sys.exit()
 
     print(colored(msg, color))
-    if lvl == Msg_t.ERROR:
-        exit()
+    if lvl == MsgType.ERROR:
+        sys.exit()
 
 
 def printable_num(num: int) -> str:
@@ -51,20 +55,21 @@ def numstr(s: str) -> str:
     return ''.join([c for c in s if c.isdigit()])
 
 
-""" Strips S of trailing and leading whitespace. """
+
 def wstext2int(s: str) -> str:
+    """ Strips S of trailing and leading whitespace. """
     i1: int = 0
     i2: int = 0
     begun: bool = False
-    for i in range(len(s)):
-        if not begun and (s[i] == '(' or s[i].isdigit()):
+    for i, c in enumerate(len(s)):
+        if not begun and (c == '(' or c.isdigit()):
             # Indicate that we are looking for the end of the expression
             # (i.e. closed parenthesis or digit)
             begun = True
             i1 = i
 
-        elif begun and (s[i] in ['\n', '\t'] or \
-            i + 1 < len(s) and s[i] == s[i + 1] == ' '):
+        elif begun and (c in ['\n', '\t'] or \
+            i + 1 < len(s) and c == s[i + 1] == ' '):
             i2 = i
             break
 
