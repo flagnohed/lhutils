@@ -1,9 +1,11 @@
-from bs4 import BeautifulSoup, PageElement, ResultSet
+""" Transferlist module. """
 import dataclasses
+
 from enum import Enum
+from bs4 import BeautifulSoup, PageElement, ResultSet
 from player import Player
 from utils import (
-    Msg_t,
+    MsgType,
     numstr,
     printable_num,
     wstext2int,
@@ -11,7 +13,8 @@ from utils import (
 )
 
 
-class Transfer_t(Enum):
+class TransferType(Enum):
+    """ Type of transfer transaction. """
     ERR = 0
     BUY = 1
     SELL = 2
@@ -22,10 +25,7 @@ DATE_FORMAT: str = "%Y-%m-%d"
 
 
 def parse_transfers(soup: BeautifulSoup) -> list[Player]:
-
-    # Should probably parse div.get_text() instead of the title.
-    # That way we would also get the pos.
-
+    """ Main parser function for transfers. Called from main. """
     players: list[Player] = []
     div: PageElement = None
 
@@ -35,7 +35,7 @@ def parse_transfers(soup: BeautifulSoup) -> list[Player]:
 
     for i, div in enumerate(information):
         player: Player = Player()
-        info: list[str] = [s for s in div.stripped_strings]
+        info: list[str] = list(div.stripped_strings)
 
         # Info has kind of a weird structure:
         # [idx, player_name, ',', 'x år', '(W-D), pos, shoots]
@@ -54,18 +54,20 @@ def parse_transfers(soup: BeautifulSoup) -> list[Player]:
     return players
 
 
-def get_transfer_type(ttstr: str) -> Transfer_t:
+def get_transfer_type(ttstr: str) -> TransferType:
+    """ Convert transfer string to type. """
     if ttstr == "Sålt":
-        return Transfer_t.SELL
-    elif ttstr == "Köpt":
-        return Transfer_t.BUY
+        return TransferType.SELL
+    if ttstr == "Köpt":
+        return TransferType.BUY
 
-    return Transfer_t.ERR
+    return TransferType.ERR
 
 
 @dataclasses.dataclass
 class HistEntry:
-    ttype: Transfer_t = Transfer_t.ERR
+    """ Represents a single entry in the transfer history table. """
+    ttype: TransferType = TransferType.ERR
     date: str       = ""
     name: str       = ""
     other_team: str = ""    # new/old team depending on transfer type
@@ -76,6 +78,7 @@ class HistEntry:
 
 
 def parse_transfer_history(soup: BeautifulSoup) -> list[HistEntry]:
+    """ Main parsing function for the transfer history module. """
     entries: list[HistEntry] = []
     info: ResultSet = soup.find_all("tr", {"class":"rowMarker"})
     for row in info:
@@ -95,37 +98,38 @@ def parse_transfer_history(soup: BeautifulSoup) -> list[HistEntry]:
 
 
 def print_hist_entry(e: HistEntry, rank: int) -> None:
+    """ Prints a single transfer history entry. """
     arrow: str = ""
-
     # We do not care about ERR here, cannot come past previous function.
-    if e.ttype == Transfer_t.BUY:
+    if e.ttype == TransferType.BUY:
         arrow = "from"
-    elif e.ttype == Transfer_t.SELL:
+    elif e.ttype == TransferType.SELL:
         arrow = "to"
 
-    team: str = "" if e.ttype == Transfer_t.FLIP else e.other_team
+    team: str = "" if e.ttype == TransferType.FLIP else e.other_team
     print(f"{rank}: {e.date} {e.name}, {e.age} {arrow} {team}")
 
-    if e.ttype == Transfer_t.FLIP:
+    if e.ttype == TransferType.FLIP:
         print(f"    Money gained: {printable_num(e.money_gained)} kr")
     else:
         print(f"    Transfer sum: {printable_num(e.transfer_sum)} kr")
 
-    if e.ttype != Transfer_t.FLIP:
+    if e.ttype != TransferType.FLIP:
         print(f"    Player value: {printable_num(e.player_value)} kr")
 
 
 def show_top_entries(key_func, msg: str, entries: list[HistEntry],
                      num_players: int, r: bool):
+    """ Prints at most NUM_PLAYERS entries. """
     entries.sort(key=key_func, reverse=r)
-    yell(msg, Msg_t.INFO)
+    yell(msg, MsgType.INFO)
     n: int = min(num_players, len(entries))
     for i in range(n):
         print_hist_entry(entries[i], i + 1)
 
 
 def show_history(entries: list[HistEntry]) -> None:
-
+    """ Printing the top transfers for different categories. """
     bought: list[HistEntry]  = []
     sold: list[HistEntry]    = []
     flipped: list[HistEntry] = []
@@ -134,7 +138,7 @@ def show_history(entries: list[HistEntry]) -> None:
     num_players: int = 5
 
     for e in entries:
-        if e.ttype == Transfer_t.BUY:
+        if e.ttype == TransferType.BUY:
             try:
                 bidx = [s.name for s in sold].index(e.name)
             except ValueError:
@@ -150,16 +154,16 @@ def show_history(entries: list[HistEntry]) -> None:
 
             e_copy = dataclasses.replace(e)
             e_copy.money_gained = sold[bidx].transfer_sum - e.transfer_sum
-            e_copy.ttype = Transfer_t.FLIP
+            e_copy.ttype = TransferType.FLIP
             bought += [e]
             flipped += [e_copy]
 
 
-        elif e.ttype == Transfer_t.SELL:
+        elif e.ttype == TransferType.SELL:
             sold += [e]
         else:
             # Shouldn't happen but you never know!
-            yell(f"ERR transfer type detected for {e.name}.", Msg_t.ERR)
+            yell(f"ERR transfer type detected for {e.name}.", MsgType.ERROR)
 
         bidx = -1
 
