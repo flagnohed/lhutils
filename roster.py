@@ -1,3 +1,5 @@
+""" Roster module. Parses roster HTML file. """
+
 from bs4 import BeautifulSoup, PageElement, ResultSet
 from player import Player
 from utils import numstr
@@ -8,9 +10,14 @@ ID2POS_DICT: dict[str, str] = {"ucTeamSquadGoalkeepers" : "GK",
                                "ucTeamSquadForwards" : "FWD"}
 
 
+def is_player_anchor(anchor: PageElement):
+    """ Helper function to determine if we found a player or just junk. """
+    return anchor["href"].startswith("/Pages/Player/Player.aspx?Player_Id=")
+
+
 def parse_roster(soup: BeautifulSoup) -> list[Player]:
-    values: ResultSet[PageElement] = soup.find_all("td", 
-                                                {"class": "right value"})
+    """ Parses an HTML file and looks for players. """
+    values: ResultSet[PageElement] = soup.find_all("td", {"class": "right value"})
     players: list[Player] = []
     title: str = ""
     for anchor in soup.find_all('a'):
@@ -37,7 +44,3 @@ def parse_roster(soup: BeautifulSoup) -> list[Player]:
         players += [player]
 
     return players
-
-
-def is_player_anchor(anchor: PageElement):
-    return anchor["href"].startswith("/Pages/Player/Player.aspx?Player_Id=")
