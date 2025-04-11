@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
 
+""" Main module. """
+import sys
 from unicodedata import normalize
-from bs4 import BeautifulSoup
-import colorama
 from re import match
-from sys import argv
 from time import time
 
+import colorama
+
+from bs4 import BeautifulSoup
 from arena import print_test_case
 from roster import parse_roster
 from player import (
@@ -23,7 +25,7 @@ from transfer import (
 )
 from utils import (
     numstr,
-    Msg_t,
+    MsgType,
     yell,
     printable_num,
 )
@@ -62,22 +64,22 @@ PVT_DICT: dict[int, tuple[int, int]] = {17: (5000000, 300000),
 
 
 def filter_players(players: list[Player], age_min: int, age_max: int,
-                   week: int, day: int, budget: int) -> list[Player]:
+                   date: tuple[int], budget: int) -> list[Player]:
     """ Filters out bad players, based on values in PVT_DICT.
     Returns a list of players that passed the filter. 
     budget == 0 --> no limit """
+    week, day = date
     fplayers: list[Player] = []
     for player in players:
         trainings_left = get_trainings_left(player, week, day)
-        if player.age in PVT_DICT.keys() and age_min <= player.age <= age_max:
+        if player.age in PVT_DICT and age_min <= player.age <= age_max:
             # Get threshold and weekly increase for the relevant age.
             t, w = PVT_DICT[player.age]
 
-            """
-            Add to FPLAYERS if  player probably will reach threshold value OR
-            player just turned 17 OR
-            player value already has a close-to-threshold value
-            """
+            # Add to FPLAYERS if  player probably will reach threshold value OR
+            # player just turned 17 OR
+            # player value already has a close-to-threshold value
+
             # If it's a transfer listed player, and user entered a budget,
             # skip if user can't afford.
             if player.bid and budget and int(numstr(player.bid)) > budget:
@@ -89,7 +91,7 @@ def filter_players(players: list[Player], age_min: int, age_max: int,
 
             elif player.age == 17 and trainings_left >= MAX_WEEKS - 1 and \
                     player.value >= 900000:
-                player.note = f"[Freshly drawn]"
+                player.note = "[Freshly drawn]"
                 fplayers += [player]
 
             elif player.age == 17 and player.value >= 4000000:
@@ -100,7 +102,7 @@ def filter_players(players: list[Player], age_min: int, age_max: int,
 
 
 def get_current_date(soup: BeautifulSoup) -> list:
-    #  Find the current date (in game) in the HTML file
+    """ Find the current date (in game) in the HTML file. """
     current_date_str = soup.find(id="topmenurightdateinner").get_text()
     clean_str = normalize("NFKD", current_date_str)
     return [int(a) for a in clean_str.split(' ') if a.isnumeric()]
@@ -112,18 +114,14 @@ def is_flag(param: str) -> bool:
                      "--transfer", "-f", "--filter"]
 
 
-def is_valid_tactic(t: str) -> bool:
-    return t in TACTICS.keys()
-
-
 def parse(filename: str, short_flag: str) -> tuple[list[Player], int, int]:
     """ Creates the necessary objects for parsing and
         calls the correct parser function. """
     players: list = []
-    with open(filename, errors="ignore", mode='r') as file:
+    with open(filename, errors="ignore", mode='r', encoding='utf-8') as file:
 
         if not bool(file.read(1)):
-            yell(f"{filename} is empty.", Msg_t.ERROR)
+            yell(f"{filename} is empty.", MsgType.ERROR)
 
         soup: BeautifulSoup = BeautifulSoup(file, "html.parser",
                                             from_encoding="utf-8")
@@ -139,7 +137,7 @@ def parse(filename: str, short_flag: str) -> tuple[list[Player], int, int]:
         # elif short_flag == "-g":
         #     parse_game(soup)
         else:
-            yell("This should not happen.", Msg_t.ERROR)
+            yell("This should not happen.", MsgType.ERROR)
 
     return players, week, day
 
@@ -159,7 +157,7 @@ def print_usage() -> None:
     print("    Only show players with age between LOW and MAX years.")
     print("    If no age interval is provided, default values are used.")
     print("    Current default values: ")
-    print("    MIN = {}, MAX = {}".format(FILTER_DEFAULT_MIN, FILTER_DEFAULT_MAX))
+    print(f"    MIN = {FILTER_DEFAULT_MIN}, MAX = {FILTER_DEFAULT_MAX}")
     print("    Filter should never be standalone. It should always come with")
     print("    either transfer or roster.\n")
     print("-r, --roster")
@@ -170,76 +168,77 @@ def print_usage() -> None:
     print("    be left blank to compare all tactics against eachother.\n")
     print("-t, --transfer")
     print("    Parse transfer list. Paste HTML into html/transfers.html.")
-    
-    
-    exit()
+    sys.exit()
 
 
 def main():
+    """ Main function.
+        TODO: reduce complexity of this function. """
     start: float = time()
-    argc: int = len(argv)
+    argc: int = len(sys.argv)
     if argc < ARGC_MIN or argc > ARGC_MAX:
         print_usage()
-
+    week: int = 0
+    day: int = 0
     budget: int = 0
-    filter: bool = False
+    filter_active: bool = False
     age_min: int = FILTER_DEFAULT_MIN
     age_max: int = FILTER_DEFAULT_MAX
-    args: list[str] = argv[1:]
+    args: list[str] = sys.argv[1:]
     players: list = []  # can contain Players or HistEntries
     colorama.init()              # <--- colors in terminal
     # Parse arguments
-    for i in range(len(args)):
-        if args[i] in ("-h", "--help"):
+    for i, arg in enumerate(len(args)):
+        if arg in ("-h", "--help"):
             print_usage()
 
-        elif args[i] in ("-r", "--roster"):
+        elif arg in ("-r", "--roster"):
             players, week, day = parse(FILE_ROSTER, "-r")
 
-        elif args[i] in ("-t", "--transfer"):
+        elif arg in ("-t", "--transfer"):
             players, week, day = parse(FILE_TRANSFER, "-t")
 
-        elif args[i] in ("-f", "--filter"):
-            filter = True
+        elif arg in ("-f", "--filter"):
+            filter_active = True
             # Filter flag can be succeeded by age range (comma separated)
             # If not we just use the default values. This also applies
             # when the age range looks weird.
             if i + 1 < len(args) and match(r"\d\d,[0-9]+", args[i + 1]):
                 i = i + 1
-                age_min, age_max = [int(x) for x in args[i].split(',')]
+                age_min, age_max = [int(x) for x in arg.split(',')]
 
-        elif args[i] in ("-th", "--transfer-history"):
-            if filter:
+        elif arg in ("-th", "--transfer-history"):
+            if filter_active:
                 yell("Filter not yet compatible with transfer history.",
-                     Msg_t.ERROR)
+                     MsgType.ERROR)
             players, _, _ = parse(FILE_TRANSFER_HISTORY, "-th")
             show_history(players)
-            exit()
+            sys.exit()
 
-        elif args[i] in ("-a", "--arena"):
+        elif arg in ("-a", "--arena"):
             if i + 2 < len(args) and args[i + 1].isnumeric() \
                     and args[i + 2].isnumeric():
                 print_test_case(int(args[i + 1]), int(args[i + 2]))
-                exit()
+                sys.exit()
             else:
                 print_usage()
-        
-        elif args[i] in ("-g", "--game"):
+
+        elif arg in ("-g", "--game"):
             # Under construction
             parse(FILE_GAME, "-g")
 
-        elif args[i] in ("-b", "--budget"):
+        elif arg in ("-b", "--budget"):
             if i + 1 < len(args) and args[i + 1].isnumeric():
                 budget = int(args[i + 1])
             else:
                 budget = DEFAULT_BUDGET
-                yell("Note: invalid budget.", Msg_t.INFO)
-                yell(f"Resorting to DEFAULT_BUDGET = {printable_num(budget)} kr", 
-                     Msg_t.INFO)
+                yell("Note: invalid budget.", MsgType.INFO)
+                yell(f"Resorting to DEFAULT_BUDGET = {printable_num(budget)} kr",
+                     MsgType.INFO)
 
-        elif args[i] in ("-tx", "--tactics"):
+        elif arg in ("-tx", "--tactics"):
             t1 = ""
-            if i + 1 < len(args) and is_valid_tactic(args[i + 1]):
+            if i + 1 < len(args) and args[i + 1] in TACTICS:
                 t1 = args[i + 1]
             compare_tactics(t1)
 
@@ -248,14 +247,14 @@ def main():
 
     num_total_players: int = len(players)
 
-    if filter:
-        players = filter_players(players, age_min, age_max, week, day, budget)
+    if filter_active:
+        players = filter_players(players, age_min, age_max, (week, day), budget)
 
     print_value_predictions(players, week, day)
     end: float = time()
 
     yell(f"Total players parsed: {num_total_players}")
-    if filter:
+    if filter_active:
         yell(f"Players after filtering: {len(players)}")
     yell(f"Time elapsed: {end - start}s")
 
