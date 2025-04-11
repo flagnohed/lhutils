@@ -1,3 +1,11 @@
+"""
+The arena module can do the following:
+* calculate rent for a certain arena size,
+* show the best proportions (money wise) for a certain arena size,
+* calculate the cost of demolishing/building to a certain arena size,
+* show how long it would take to make profit of a demolition.
+"""
+
 # Seats
 CUR_SHORT: int = 12500
 CUR_LONG: int = 30000
@@ -41,37 +49,36 @@ def calculate_rent(arena_size: int) -> int:
 
 
 def get_best_proportions(arena_size: int) -> tuple[int, int, int]:
+    """ The idea is to maximize VIP and Long side seats, since
+        ticket prices are more expensive there. """
     best_short = int(arena_size * 0.25)
     best_long = int(arena_size * 0.6)
     best_vip = int(arena_size * 0.15)
     return best_short, best_long, best_vip
 
 
-def calculate_demolition_cost(old_arena_size: int, new_arena_size: int) -> int:
-    if new_arena_size > old_arena_size:
-        print("Taking away seats will not add to the arena size.")
-        exit()
-    elif new_arena_size == old_arena_size:
+def calculate_arena_change_cost(old_size: int, new_size: int) -> int:
+    """ Calculate cost of demolishing/building seats. """
+    if new_size == old_size:
         return 0
 
-    seats_short, seats_long, seats_vip = get_best_proportions(
-            old_arena_size - new_arena_size)
-    return 200000 + 30 * seats_short + 40 * seats_long + 60 * seats_vip
+    demolish: bool = new_size < old_size
 
-
-def calculate_building_cost(old_arena_size: int, new_arena_size: int) -> int:
-    if new_arena_size < old_arena_size:
-        print("calculate_building_cost: Cannot add negative seats.")
-        exit()
-    elif new_arena_size == old_arena_size:
-        return 0
-    # Get how many seats of each sort we need to build
     seats_short, seats_long, seats_vip = get_best_proportions(
-            new_arena_size - old_arena_size)
-    return 350000 + 175 * seats_short + 300 * seats_long + 1500 * seats_vip
+            max(old_size, new_size) - min(old_size, new_size))
+    cost_base = 200000 if demolish else 350000
+    cost_short = 30 if demolish else 175
+    cost_long = 40 if demolish else 300
+    cost_vip = 60 if demolish else 1500
+
+    return cost_base \
+        + cost_short * seats_short \
+        + cost_long * seats_long \
+        + cost_vip * seats_vip
 
 
 def calculate_income(arena_size: int, division: int) -> int:
+    """ Calculates income per game for a given arena size and division. """
     short_seats, long_seats, vip_seats = get_best_proportions(arena_size)
     cps_short, cps_long, cps_vip = COSTS_PER_SEAT[division]
     income = short_seats * cps_short + long_seats * cps_long + \
@@ -80,6 +87,7 @@ def calculate_income(arena_size: int, division: int) -> int:
 
 
 def print_percentages(short: int, long: int, vip: int):
+    """ Shows how much of the arena is a certain arena module. """
     print(f"Kortsida: {short / CUR_TOTAL}")
     print(f"Långsida: {long / CUR_TOTAL}")
     print(f"VIP:      {vip / CUR_TOTAL}")
@@ -96,11 +104,11 @@ def print_test_case(old_arena_size, new_arena_size) -> None:
         return
 
     if new_arena_size < old_arena_size:
-        demolition_cost = calculate_demolition_cost(
+        demolition_cost = calculate_arena_change_cost(
                 old_arena_size, new_arena_size)
         print(f"Demolish {old_arena_size} -> {new_arena_size}: {demolition_cost} kr")
     else:
-        build_cost = calculate_building_cost(old_arena_size, new_arena_size)
+        build_cost = calculate_arena_change_cost(old_arena_size, new_arena_size)
         print(f"Build {old_arena_size} -> {new_arena_size}: {build_cost} kr")
 
     for div in range(1, 6):
@@ -114,7 +122,7 @@ def print_test_case(old_arena_size, new_arena_size) -> None:
         rent_saved = old_rent - new_rent
         print(f"Rent saved: {rent_saved} kr")
 
-        build_cost = calculate_building_cost(new_arena_size, old_arena_size)
+        build_cost = calculate_arena_change_cost(new_arena_size, old_arena_size)
         print(f"Cost to build back to original size: {build_cost}")
 
         weeks_until_profit = int((build_cost + demolition_cost) / rent_saved)
