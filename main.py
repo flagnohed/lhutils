@@ -66,7 +66,11 @@ PVT_DICT: dict[int, tuple[int, int]] = {
 
 
 def filter_players(
-    players: list[Player], age_min: int, age_max: int, date: tuple[int], budget: int
+    players: list[Player],
+    age_min: int,
+    age_max: int,
+    date: tuple[int],
+    budget: int,
 ) -> list[Player]:
     """Filters out bad players, based on values in PVT_DICT.
     Returns a list of players that passed the filter.
@@ -137,7 +141,9 @@ def parse(filename: str, short_flag: str) -> tuple[list[Player], int, int]:
         if not bool(file.read(1)):
             yell(f"{filename} is empty.", MsgType.ERROR)
 
-        soup: BeautifulSoup = BeautifulSoup(file, "html.parser", from_encoding="utf-8")
+        soup: BeautifulSoup = BeautifulSoup(
+            file, "html.parser", from_encoding="utf-8"
+        )
         # Parse current in-game date.
         week, day = get_current_date(soup)
         # We can trust that short_flag is a valid flag here.
@@ -163,7 +169,9 @@ def print_usage() -> None:
     print("-h, --help")
     print("    Prints this information and quits.\n")
     print("-a, --arena CAPACITY NEW_CAPACITY")
-    print("    Calculate how much it costs to change capacity (build/demolish).")
+    print(
+        "    Calculate how much it costs to change capacity (build/demolish)."
+    )
     print("    Also prints how many weeks until profit,")
     print("    as well as how much difference it will be in terms of rent.\n")
     print("-f, --filter LOW,MAX")
@@ -222,7 +230,10 @@ def main():
 
         elif arg in ("-th", "--transfer-history"):
             if filter_active:
-                yell("Filter not yet compatible with transfer history.", MsgType.ERROR)
+                yell(
+                    "Filter not yet compatible with transfer history.",
+                    MsgType.ERROR,
+                )
             players, _, _ = parse(FILE_TRANSFER_HISTORY, "-th")
             show_history(players)
             sys.exit()
@@ -249,7 +260,7 @@ def main():
                 budget = DEFAULT_BUDGET
                 yell("Note: invalid budget.", MsgType.INFO)
                 yell(
-                    f"Resorting to DEFAULT_BUDGET = {printable_num(budget)} kr",
+                    f"Using DEFAULT_BUDGET = {printable_num(budget)} kr",
                     MsgType.INFO,
                 )
 
@@ -265,7 +276,9 @@ def main():
     num_total_players: int = len(players)
 
     if filter_active:
-        players = filter_players(players, age_min, age_max, (week, day), budget)
+        players = filter_players(
+            players, age_min, age_max, (week, day), budget
+        )
 
     print_value_predictions(players, week, day)
     end: float = time()

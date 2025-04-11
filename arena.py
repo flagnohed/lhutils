@@ -80,11 +80,13 @@ def calculate_arena_change_cost(old_size: int, new_size: int) -> int:
     )
 
 
-def calculate_income(arena_size: int, division: int) -> int:
+def calc_income(arena_size: int, division: int) -> int:
     """Calculates income per game for a given arena size and division."""
     short_seats, long_seats, vip_seats = get_best_proportions(arena_size)
     cps_short, cps_long, cps_vip = COSTS_PER_SEAT[division]
-    income = short_seats * cps_short + long_seats * cps_long + vip_seats * cps_vip
+    income = (
+        short_seats * cps_short + long_seats * cps_long + vip_seats * cps_vip
+    )
     return income
 
 
@@ -95,37 +97,38 @@ def print_percentages(short: int, long: int, vip: int):
     print(f"VIP:      {vip / CUR_TOTAL}")
 
 
-def print_test_case(old_arena_size, new_arena_size) -> None:
+def print_test_case(old_size, new_size) -> None:
     """Main driver. Called from main.py."""
     build_cost: int = 0
     demolition_cost: int = 0
     print("----------")
 
-    if new_arena_size == old_arena_size:
+    if new_size == old_size:
         print("Stupid test, ingore.")
         return
 
-    if new_arena_size < old_arena_size:
-        demolition_cost = calculate_arena_change_cost(old_arena_size, new_arena_size)
-        print(f"Demolish {old_arena_size} -> {new_arena_size}: {demolition_cost} kr")
+    if new_size < old_size:
+        demolition_cost = calculate_arena_change_cost(old_size, new_size)
+        print(f"Demolish {old_size} -> {new_size}: {demolition_cost} kr")
     else:
-        build_cost = calculate_arena_change_cost(old_arena_size, new_arena_size)
-        print(f"Build {old_arena_size} -> {new_arena_size}: {build_cost} kr")
+        build_cost = calculate_arena_change_cost(old_size, new_size)
+        print(f"Build {old_size} -> {new_size}: {build_cost} kr")
 
+    # Add LHL when the time comes.
     for div in range(1, 6):
         print(
-            f"--> div {div}: new income per week: {calculate_income(new_arena_size, div)}"
+            f"--> div {div}: new income per week: {calc_income(new_size, div)}"
         )
 
-    new_rent = calculate_rent(new_arena_size)
-    old_rent = calculate_rent(old_arena_size)
+    new_rent = calculate_rent(new_size)
+    old_rent = calculate_rent(old_size)
 
     print(f"New weekly rent: {new_rent}")
-    if new_arena_size < old_arena_size:
+    if new_size < old_size:
         rent_saved = old_rent - new_rent
         print(f"Rent saved: {rent_saved} kr")
 
-        build_cost = calculate_arena_change_cost(new_arena_size, old_arena_size)
+        build_cost = calculate_arena_change_cost(old_size, new_size)
         print(f"Cost to build back to original size: {build_cost}")
 
         weeks_until_profit = int((build_cost + demolition_cost) / rent_saved)

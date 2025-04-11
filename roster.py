@@ -19,7 +19,9 @@ def is_player_anchor(anchor: PageElement):
 
 def parse_roster(soup: BeautifulSoup) -> list[Player]:
     """Parses an HTML file and looks for players."""
-    values: ResultSet[PageElement] = soup.find_all("td", {"class": "right value"})
+    values: ResultSet[PageElement] = soup.find_all(
+        "td", {"class": "right value"}
+    )
     players: list[Player] = []
     title: str = ""
     for anchor in soup.find_all("a"):

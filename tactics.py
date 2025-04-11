@@ -5,12 +5,24 @@ from utils import yell, MsgType
 
 
 TACTICS = {
-    "343432": "ABCABCABCABCABCABCABCABCABCABCABCABCABCABCABCABCABCABCABCABCABCAB",
-    "454015": "ABABCABABCABABCABABAABABCABABCABABCABABAABABCABABCABABCABABAABABC",
-    "453520": "ABABCACABCABABCABABAABABCACABCABABCABABAABABCACABCABABCABABAABABC",
-    "403030": "ABCABCABACABCABCABCAABCABCABACABCABCABCAABCABCABACABCABCABCAABCAB",
-    "403525": "ABABCABABCACABCABABCABABCACABCABABCABABCACABCABABCABABCABABCABABC",
-    "404020": "ABABCABABCABABCABABCABABCABABCABABCABABCABABCABABCABABCABABCABABC",
+    "343432": (
+        "ABCABCABCABCABCABCABCABCABCABC" "ABCABCABCABCABCABCABCABCABCAB"
+    ),
+    "454015": (
+        "ABABCABABCABABCABABAABABCABAB" "CABABCABABAABABCABABCABABCABABAABABC"
+    ),
+    "453520": (
+        "ABABCACABCABABCABABAABABCACAB" "CABABCABABAABABCACABCABABCABABAABABC"
+    ),
+    "403030": (
+        "ABCABCABACABCABCABCAABCABCABA" "CABCABCABCAABCABCABACABCABCABCAABCAB"
+    ),
+    "403525": (
+        "ABABCABABCACABCABABCABABCACAB" "CABABCABABCACABCABABCABABCABABCABABC"
+    ),
+    "404020": (
+        "ABABCABABCABABCABABCABABCABAB" "CABABCABABCABABCABABCABABCABABCABABC"
+    ),
 }
 
 
@@ -41,7 +53,8 @@ def print_matchup_percentage(
     meetings: dict[str, int], show_matchups: bool = False
 ) -> float:
     """Prints how often each line meets eachother in a game.
-    A "better" matchup is when for example line 'A' meets opponents' line 'B'."""
+    A "better" matchup is when for example line 'A' meets opponents' line 'B'.
+    """
     num_better_matchups: int = 0
     total_matchups: int = 0
     cur_matchup: int = 0
@@ -58,7 +71,9 @@ def print_matchup_percentage(
             yell(f"{t1_line} vs {t2_line}: {cur_matchup}", MsgType.APP)
 
     percentage: float = num_better_matchups / total_matchups * 100
-    yell(f"Percentage with better line on ice: {percentage:.2f}%", MsgType.INFO)
+    yell(
+        f"Percentage with better line on ice: {percentage:.2f}%", MsgType.INFO
+    )
 
 
 def compare_tactics(t: str) -> None:

@@ -85,7 +85,9 @@ def parse_transfer_history(soup: BeautifulSoup) -> list[HistEntry]:
     entries: list[HistEntry] = []
     info: ResultSet = soup.find_all("tr", {"class": "rowMarker"})
     for row in info:
-        text: list = [field.replace("\xa0", " ") for field in row.stripped_strings]
+        text: list = [
+            field.replace("\xa0", " ") for field in row.stripped_strings
+        ]
         entry = HistEntry()
         entry.date = text[0]
         entry.ttype = get_transfer_type(text[1])
@@ -180,4 +182,6 @@ def show_history(entries: list[HistEntry]) -> None:
     show_top_entries(lambda x: x.money_gained, msg, flipped, num_players, True)
 
     msg = f"\n===== {num_players} most lost (flipped players) ====="
-    show_top_entries(lambda x: x.money_gained, msg, flipped, num_players, False)
+    show_top_entries(
+        lambda x: x.money_gained, msg, flipped, num_players, False
+    )

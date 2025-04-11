@@ -48,12 +48,14 @@ def print_value_predictions(players: list[Player], week, day) -> None:
 
     headline: str = ""
     for p in players:
-        rem_trainings: int = get_trainings_left(p, week, day)
+        trainings: int = get_trainings_left(p, week, day)
         yell(DIVIDER_LENGTH * "-", MsgType.INFO)
 
         if p.idx:
             # This means we have parsed the transfer list
-            headline = f"{p.idx}. {p.name}, {p.age}, {p.bid}, {p.pos}, {p.note}"
+            headline = (
+                f"{p.idx}. {p.name}, {p.age}, {p.bid}, {p.pos}, {p.note}"
+            )
         else:
             # At the moment this can only be roster
             headline = f"{p.name}, {p.age}, {p.pos}"
@@ -65,30 +67,32 @@ def print_value_predictions(players: list[Player], week, day) -> None:
             # Players over the age of 17 rarely develop at 300k/w.
             # And if they do, they're shit.
             yell(
-                f"300k/w: {printable_num(p.value + rem_trainings * 300000)} kr",
+                f"300k/w: {printable_num(p.value + trainings * 300000)} kr",
                 MsgType.APP,
             )
 
         yell(
-            f"400k/w: {printable_num(p.value + rem_trainings * 400000)} kr", MsgType.APP
+            f"400k/w: {printable_num(p.value + trainings * 400000)} kr",
+            MsgType.APP,
         )
         yell(
-            f"500k/w: {printable_num(p.value + rem_trainings * 500000)} kr", MsgType.APP
+            f"500k/w: {printable_num(p.value + trainings * 500000)} kr",
+            MsgType.APP,
         )
 
         if p.age > 18:
             yell(
-                f"600k/w: {printable_num(p.value + rem_trainings * 600000)} kr",
+                f"600k/w: {printable_num(p.value + trainings * 600000)} kr",
                 MsgType.APP,
             )
             yell(
-                f"700k/w: {printable_num(p.value + rem_trainings * 700000)} kr",
+                f"700k/w: {printable_num(p.value + trainings * 700000)} kr",
                 MsgType.APP,
             )
 
         if p.age > 19:
             yell(
-                f"800k/w: {printable_num(p.value + rem_trainings * 800000)} kr",
+                f"800k/w: {printable_num(p.value + trainings * 800000)} kr",
                 MsgType.APP,
             )
 

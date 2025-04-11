@@ -69,7 +69,9 @@ def wstext2int(s: str) -> str:
             begun = True
             i1 = i
 
-        elif begun and (c in ["\n", "\t"] or i + 1 < len(s) and c == s[i + 1] == " "):
+        elif begun and (
+            c in ["\n", "\t"] or i + 1 < len(s) and c == s[i + 1] == " "
+        ):
             i2 = i
             break
 
