@@ -1,4 +1,5 @@
-""" Transferlist module. """
+"""Transferlist module."""
+
 import dataclasses
 
 from enum import Enum
@@ -14,7 +15,8 @@ from utils import (
 
 
 class TransferType(Enum):
-    """ Type of transfer transaction. """
+    """Type of transfer transaction."""
+
     ERR = 0
     BUY = 1
     SELL = 2
@@ -25,13 +27,13 @@ DATE_FORMAT: str = "%Y-%m-%d"
 
 
 def parse_transfers(soup: BeautifulSoup) -> list[Player]:
-    """ Main parser function for transfers. Called from main. """
+    """Main parser function for transfers. Called from main."""
     players: list[Player] = []
     div: PageElement = None
 
-    information: ResultSet = soup.find_all("div", {"class":"ts_collapsed_1"})
-    values: ResultSet      = soup.find_all("div", {"class":"ts_collapsed_3"})
-    bids: ResultSet        = soup.find_all("div", {"class":"ts_collapsed_5"})
+    information: ResultSet = soup.find_all("div", {"class": "ts_collapsed_1"})
+    values: ResultSet = soup.find_all("div", {"class": "ts_collapsed_3"})
+    bids: ResultSet = soup.find_all("div", {"class": "ts_collapsed_5"})
 
     for i, div in enumerate(information):
         player: Player = Player()
@@ -43,7 +45,7 @@ def parse_transfers(soup: BeautifulSoup) -> list[Player]:
         player.name = info[1]
         player.age = int(numstr(info[3]))
         bdate_str: str = numstr(info[4])
-        player.bday = int(bdate_str[-1])    # last digit is bday,
+        player.bday = int(bdate_str[-1])  # last digit is bday,
         player.bweek = int(bdate_str[:-1])  # and the rest is bweek.
         player.pos = info[4].split(", ")[1]
         player.value = int(numstr(values[i].get_text()))
@@ -55,7 +57,7 @@ def parse_transfers(soup: BeautifulSoup) -> list[Player]:
 
 
 def get_transfer_type(ttstr: str) -> TransferType:
-    """ Convert transfer string to type. """
+    """Convert transfer string to type."""
     if ttstr == "Sålt":
         return TransferType.SELL
     if ttstr == "Köpt":
@@ -66,24 +68,24 @@ def get_transfer_type(ttstr: str) -> TransferType:
 
 @dataclasses.dataclass
 class HistEntry:
-    """ Represents a single entry in the transfer history table. """
+    """Represents a single entry in the transfer history table."""
+
     ttype: TransferType = TransferType.ERR
-    date: str       = ""
-    name: str       = ""
-    other_team: str = ""    # new/old team depending on transfer type
-    age: int          = 0
+    date: str = ""
+    name: str = ""
+    other_team: str = ""  # new/old team depending on transfer type
+    age: int = 0
     transfer_sum: int = 0
     player_value: int = 0
     money_gained: int = 0
 
 
 def parse_transfer_history(soup: BeautifulSoup) -> list[HistEntry]:
-    """ Main parsing function for the transfer history module. """
+    """Main parsing function for the transfer history module."""
     entries: list[HistEntry] = []
-    info: ResultSet = soup.find_all("tr", {"class":"rowMarker"})
+    info: ResultSet = soup.find_all("tr", {"class": "rowMarker"})
     for row in info:
-        text: list = [field.replace("\xa0", " ") for field
-                      in row.stripped_strings]
+        text: list = [field.replace("\xa0", " ") for field in row.stripped_strings]
         entry = HistEntry()
         entry.date = text[0]
         entry.ttype = get_transfer_type(text[1])
@@ -98,7 +100,7 @@ def parse_transfer_history(soup: BeautifulSoup) -> list[HistEntry]:
 
 
 def print_hist_entry(e: HistEntry, rank: int) -> None:
-    """ Prints a single transfer history entry. """
+    """Prints a single transfer history entry."""
     arrow: str = ""
     # We do not care about ERR here, cannot come past previous function.
     if e.ttype == TransferType.BUY:
@@ -118,9 +120,10 @@ def print_hist_entry(e: HistEntry, rank: int) -> None:
         print(f"    Player value: {printable_num(e.player_value)} kr")
 
 
-def show_top_entries(key_func, msg: str, entries: list[HistEntry],
-                     num_players: int, r: bool):
-    """ Prints at most NUM_PLAYERS entries. """
+def show_top_entries(
+    key_func, msg: str, entries: list[HistEntry], num_players: int, r: bool
+):
+    """Prints at most NUM_PLAYERS entries."""
     entries.sort(key=key_func, reverse=r)
     yell(msg, MsgType.INFO)
     n: int = min(num_players, len(entries))
@@ -129,9 +132,9 @@ def show_top_entries(key_func, msg: str, entries: list[HistEntry],
 
 
 def show_history(entries: list[HistEntry]) -> None:
-    """ Printing the top transfers for different categories. """
-    bought: list[HistEntry]  = []
-    sold: list[HistEntry]    = []
+    """Printing the top transfers for different categories."""
+    bought: list[HistEntry] = []
+    sold: list[HistEntry] = []
     flipped: list[HistEntry] = []
     bidx: int = -1
     msg: str = ""
@@ -157,7 +160,6 @@ def show_history(entries: list[HistEntry]) -> None:
             e_copy.ttype = TransferType.FLIP
             bought += [e]
             flipped += [e_copy]
-
 
         elif e.ttype == TransferType.SELL:
             sold += [e]

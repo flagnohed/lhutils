@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-""" Main module. """
+"""Main module."""
 import sys
 from unicodedata import normalize
 from re import match
@@ -55,19 +55,22 @@ DEFAULT_BUDGET: int = 20000000
 # | 21  | 30m  | 700k            |
 # | 22  | 40m  | 700k            |
 # |-----|------|-----------------|
-PVT_DICT: dict[int, tuple[int, int]] = {17: (5000000, 300000),
-                                        18: (11000000, 400000),
-                                        19: (17000000, 500000),
-                                        20: (23000000, 600000),
-                                        21: (35000000, 700000),
-                                        22: (50000000, 700000)}
+PVT_DICT: dict[int, tuple[int, int]] = {
+    17: (5000000, 300000),
+    18: (11000000, 400000),
+    19: (17000000, 500000),
+    20: (23000000, 600000),
+    21: (35000000, 700000),
+    22: (50000000, 700000),
+}
 
 
-def filter_players(players: list[Player], age_min: int, age_max: int,
-                   date: tuple[int], budget: int) -> list[Player]:
-    """ Filters out bad players, based on values in PVT_DICT.
-    Returns a list of players that passed the filter. 
-    budget == 0 --> no limit """
+def filter_players(
+    players: list[Player], age_min: int, age_max: int, date: tuple[int], budget: int
+) -> list[Player]:
+    """Filters out bad players, based on values in PVT_DICT.
+    Returns a list of players that passed the filter.
+    budget == 0 --> no limit"""
     week, day = date
     fplayers: list[Player] = []
     for player in players:
@@ -89,8 +92,11 @@ def filter_players(players: list[Player], age_min: int, age_max: int,
                 player.note = f"[Can surpass {printable_num(t)} kr]"
                 fplayers += [player]
 
-            elif player.age == 17 and trainings_left >= MAX_WEEKS - 1 and \
-                    player.value >= 900000:
+            elif (
+                player.age == 17
+                and trainings_left >= MAX_WEEKS - 1
+                and player.value >= 900000
+            ):
                 player.note = "[Freshly drawn]"
                 fplayers += [player]
 
@@ -102,29 +108,36 @@ def filter_players(players: list[Player], age_min: int, age_max: int,
 
 
 def get_current_date(soup: BeautifulSoup) -> list:
-    """ Find the current date (in game) in the HTML file. """
+    """Find the current date (in game) in the HTML file."""
     current_date_str = soup.find(id="topmenurightdateinner").get_text()
     clean_str = normalize("NFKD", current_date_str)
-    return [int(a) for a in clean_str.split(' ') if a.isnumeric()]
+    return [int(a) for a in clean_str.split(" ") if a.isnumeric()]
 
 
 def is_flag(param: str) -> bool:
-    """ Determines if argument PARAM is a valid flag. """
-    return param in ["-h", "--help", "-r", "--roster", "-t",
-                     "--transfer", "-f", "--filter"]
+    """Determines if argument PARAM is a valid flag."""
+    return param in [
+        "-h",
+        "--help",
+        "-r",
+        "--roster",
+        "-t",
+        "--transfer",
+        "-f",
+        "--filter",
+    ]
 
 
 def parse(filename: str, short_flag: str) -> tuple[list[Player], int, int]:
-    """ Creates the necessary objects for parsing and
-        calls the correct parser function. """
+    """Creates the necessary objects for parsing and
+    calls the correct parser function."""
     players: list = []
-    with open(filename, errors="ignore", mode='r', encoding='utf-8') as file:
+    with open(filename, errors="ignore", mode="r", encoding="utf-8") as file:
 
         if not bool(file.read(1)):
             yell(f"{filename} is empty.", MsgType.ERROR)
 
-        soup: BeautifulSoup = BeautifulSoup(file, "html.parser",
-                                            from_encoding="utf-8")
+        soup: BeautifulSoup = BeautifulSoup(file, "html.parser", from_encoding="utf-8")
         # Parse current in-game date.
         week, day = get_current_date(soup)
         # We can trust that short_flag is a valid flag here.
@@ -143,8 +156,8 @@ def parse(filename: str, short_flag: str) -> tuple[list[Player], int, int]:
 
 
 def print_usage() -> None:
-    """ Prints usage information. Called if -h/--help flag present
-        or usage error detected. """
+    """Prints usage information. Called if -h/--help flag present
+    or usage error detected."""
     print("Usage: python3 main.py [options]\n")
     print("Options:\n")
     print("-h, --help")
@@ -172,8 +185,8 @@ def print_usage() -> None:
 
 
 def main():
-    """ Main function.
-        TODO: reduce complexity of this function. """
+    """Main function.
+    TODO: reduce complexity of this function."""
     start: float = time()
     argc: int = len(sys.argv)
     if argc < ARGC_MIN or argc > ARGC_MAX:
@@ -186,7 +199,7 @@ def main():
     age_max: int = FILTER_DEFAULT_MAX
     args: list[str] = sys.argv[1:]
     players: list = []  # can contain Players or HistEntries
-    colorama.init()              # <--- colors in terminal
+    colorama.init()  # <--- colors in terminal
     # Parse arguments
     for i, arg in enumerate(len(args)):
         if arg in ("-h", "--help"):
@@ -205,19 +218,21 @@ def main():
             # when the age range looks weird.
             if i + 1 < len(args) and match(r"\d\d,[0-9]+", args[i + 1]):
                 i = i + 1
-                age_min, age_max = [int(x) for x in arg.split(',')]
+                age_min, age_max = [int(x) for x in arg.split(",")]
 
         elif arg in ("-th", "--transfer-history"):
             if filter_active:
-                yell("Filter not yet compatible with transfer history.",
-                     MsgType.ERROR)
+                yell("Filter not yet compatible with transfer history.", MsgType.ERROR)
             players, _, _ = parse(FILE_TRANSFER_HISTORY, "-th")
             show_history(players)
             sys.exit()
 
         elif arg in ("-a", "--arena"):
-            if i + 2 < len(args) and args[i + 1].isnumeric() \
-                    and args[i + 2].isnumeric():
+            if (
+                i + 2 < len(args)
+                and args[i + 1].isnumeric()
+                and args[i + 2].isnumeric()
+            ):
                 print_test_case(int(args[i + 1]), int(args[i + 2]))
                 sys.exit()
             else:
@@ -233,8 +248,10 @@ def main():
             else:
                 budget = DEFAULT_BUDGET
                 yell("Note: invalid budget.", MsgType.INFO)
-                yell(f"Resorting to DEFAULT_BUDGET = {printable_num(budget)} kr",
-                     MsgType.INFO)
+                yell(
+                    f"Resorting to DEFAULT_BUDGET = {printable_num(budget)} kr",
+                    MsgType.INFO,
+                )
 
         elif arg in ("-tx", "--tactics"):
             t1 = ""
