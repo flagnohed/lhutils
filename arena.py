@@ -6,8 +6,6 @@ The arena module can do the following:
 * show how long it would take to make profit of a demolition.
 """
 
-import sys
-
 # Seats
 CUR_SHORT: int = 12500
 CUR_LONG: int = 30000
@@ -60,12 +58,12 @@ def get_best_proportions(arena_size: int) -> tuple[int, int, int]:
 
 
 def calculate_arena_change_cost(old_size: int, new_size: int) -> int:
-
+    """ Calculate cost of demolishing/building seats. """
     if new_size == old_size:
         return 0
-    
+
     demolish: bool = new_size < old_size
-    
+
     seats_short, seats_long, seats_vip = get_best_proportions(
             max(old_size, new_size) - min(old_size, new_size))
     cost_base = 200000 if demolish else 350000
