@@ -8,7 +8,6 @@ from sys import argv
 from time import time
 
 from arena import print_test_case
-# from game import parse_game
 from roster import parse_roster
 from player import (
     Player,

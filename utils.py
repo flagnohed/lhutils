@@ -1,7 +1,5 @@
-from bs4 import BeautifulSoup
 from enum import Enum
 from termcolor import colored
-from unicodedata import normalize
 
 
 CLR_APP: str = "white"
