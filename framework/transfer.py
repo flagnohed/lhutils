@@ -66,6 +66,7 @@ def get_transfer_type(ttstr: str) -> TransferType:
     return TransferType.ERR
 
 
+# pylint: disable=too-many-instance-attributes
 @dataclasses.dataclass
 class HistEntry:
     """Represents a single entry in the transfer history table."""
@@ -135,9 +136,9 @@ def show_top_entries(
 
 
 def count_transaction(
-        teams: dict[str, list[int, int]], team_name: str, i: int
-        ) -> dict[str, list[int, int]]:
-    """ Count purchases and sales per team. Displayed in show_history(). """
+    teams: dict[str, list[int, int]], team_name: str, i: int
+) -> dict[str, list[int, int]]:
+    """Count purchases and sales per team. Displayed in show_history()."""
     modded_teams = teams
 
     if team_name not in modded_teams:
@@ -145,6 +146,7 @@ def count_transaction(
 
     modded_teams[team_name][i] += 1
     return modded_teams
+
 
 def show_history(entries: list[HistEntry]) -> None:
     """Printing the top transfers for different categories."""
@@ -185,39 +187,49 @@ def show_history(entries: list[HistEntry]) -> None:
 
         bidx = -1
 
-    # Print top 5 teams with most transactions
     print(f"===== {num_top_entries} teams most traded with =====")
-    teams = dict(sorted(teams.items(),
-                        key=lambda item: sum(item[1]),
-                        reverse=True))
-    items = list(teams.items())
+    teams = dict(
+        sorted(teams.items(), key=lambda item: sum(item[1]), reverse=True)
+    )
+    num_items: int = 20
+    items = list(teams.items())[:num_items]
     for i, item in enumerate(items):
         name, transactions = item
-        if sum(transactions) < 3:
-            # Ignore in order to not flood the terminal
-            continue
-
         print(f"{i + 1}. {name}")
         print(f"    Times bought from: {transactions[0]}")
-        print(f"    Times sold to:     {transactions[1]}")
+        if name != "Free agent":
+            # Cannot sell to free agency. If they go to free agency
+            # they were fired, which does not show in transfer history.
+            print(f"    Times sold to:     {transactions[1]}")
 
     show_top_entries(
         lambda x: x.transfer_sum,
         f"\n===== {num_top_entries} most expensive players bought =====",
-        bought, num_top_entries, True)
+        bought,
+        num_top_entries,
+        True,
+    )
 
     show_top_entries(
         lambda x: x.transfer_sum,
         f"\n===== {num_top_entries} most expensive players sold =====",
-        sold, num_top_entries, True)
+        sold,
+        num_top_entries,
+        True,
+    )
 
     show_top_entries(
         lambda x: x.money_gained,
         f"\n===== {num_top_entries} most gained (flipped players) =====",
-        flipped, num_top_entries, True)
+        flipped,
+        num_top_entries,
+        True,
+    )
 
     show_top_entries(
         lambda x: x.money_gained,
         f"\n===== {num_top_entries} most lost (flipped players) =====",
-        flipped, num_top_entries, False
+        flipped,
+        num_top_entries,
+        False,
     )

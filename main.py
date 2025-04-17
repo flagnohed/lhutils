@@ -195,6 +195,7 @@ def print_usage() -> None:
     sys.exit()
 
 
+# pylint: disable=too-many-branches, too-many-statements
 def main():
     """Main function.
     TODO: reduce complexity of this function."""

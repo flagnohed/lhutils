@@ -9,6 +9,7 @@ MAX_WEEKS: int = 13
 MAX_DAYS: int = 7
 
 
+# pylint: disable=too-many-instance-attributes
 @dataclasses.dataclass
 class Player:
     """Class representing a single player."""
