@@ -9,21 +9,21 @@ from time import time
 import colorama
 
 from bs4 import BeautifulSoup
-from arena import print_test_case
-from roster import parse_roster
-from player import (
+from framework.arena import print_test_case
+from framework.roster import parse_roster
+from framework.player import (
     Player,
     print_value_predictions,
     get_trainings_left,
     MAX_WEEKS,
 )
-from tactics import compare_tactics, TACTICS
-from transfer import (
+from framework.tactics import compare_tactics, TACTICS
+from framework.transfer import (
     parse_transfers,
     parse_transfer_history,
     show_history,
 )
-from utils import (
+from framework.utils import (
     numstr,
     MsgType,
     yell,

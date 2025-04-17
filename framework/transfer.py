@@ -4,8 +4,8 @@ import dataclasses
 
 from enum import Enum
 from bs4 import BeautifulSoup, PageElement, ResultSet
-from player import Player
-from utils import (
+from .player import Player
+from .utils import (
     MsgType,
     numstr,
     printable_num,
@@ -137,6 +137,7 @@ def show_top_entries(
 def count_transaction(
         teams: dict[str, list[int, int]], team_name: str, i: int
         ) -> dict[str, list[int, int]]:
+    """ Count purchases and sales per team. Displayed in show_history(). """
     modded_teams = teams
 
     if team_name not in modded_teams:
@@ -186,7 +187,7 @@ def show_history(entries: list[HistEntry]) -> None:
 
     # Print top 5 teams with most transactions
     print(f"===== {num_top_entries} teams most traded with =====")
-    teams = dict(sorted(teams.items(), 
+    teams = dict(sorted(teams.items(),
                         key=lambda item: sum(item[1]),
                         reverse=True))
     items = list(teams.items())
@@ -195,13 +196,13 @@ def show_history(entries: list[HistEntry]) -> None:
         if sum(transactions) < 3:
             # Ignore in order to not flood the terminal
             continue
-        
+
         print(f"{i + 1}. {name}")
         print(f"    Times bought from: {transactions[0]}")
         print(f"    Times sold to:     {transactions[1]}")
-        
+
     show_top_entries(
-        lambda x: x.transfer_sum, 
+        lambda x: x.transfer_sum,
         f"\n===== {num_top_entries} most expensive players bought =====",
         bought, num_top_entries, True)
 
@@ -217,6 +218,6 @@ def show_history(entries: list[HistEntry]) -> None:
 
     show_top_entries(
         lambda x: x.money_gained,
-        f"\n===== {num_top_entries} most lost (flipped players) =====", 
+        f"\n===== {num_top_entries} most lost (flipped players) =====",
         flipped, num_top_entries, False
     )
