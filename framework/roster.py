@@ -1,8 +1,8 @@
 """Roster module. Parses roster HTML file."""
 
 from bs4 import BeautifulSoup, PageElement, ResultSet
-from player import Player
-from utils import numstr
+from .player import Player
+from .utils import numstr
 
 
 ID2POS_DICT: dict[str, str] = {

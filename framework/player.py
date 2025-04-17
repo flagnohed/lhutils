@@ -1,7 +1,7 @@
 """Player module."""
 
 import dataclasses
-from utils import MsgType, yell, printable_num
+from .utils import MsgType, yell, printable_num
 
 
 DIVIDER_LENGTH: int = 30

@@ -1,7 +1,7 @@
 """Tactics module. Compares different tactics."""
 
 from itertools import combinations
-from utils import yell, MsgType
+from .utils import yell, MsgType
 
 
 TACTICS = {
