@@ -38,4 +38,7 @@ from what the user sees.
 Add parsing of game stats, i.e, game events. 
 * Time, type, players involved (1-3), team (h/a)
 
-
+Idea: You might not need to parse the lineups when parsing games. Technically you could see for example if Sven Svensson 
+was involved in an event at time (13:37), and the tactic determines that line 2 is on the ice at that time,
+then we know Sven Svensson is in line 2. Then we could only get statistics for players who was involved in
+at least one event during the game, but its better than nothing.
