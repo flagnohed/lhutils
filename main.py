@@ -164,29 +164,32 @@ def parse(filename: str, short_flag: str) -> tuple[list[Player], int, int]:
 def print_usage() -> None:
     """Prints usage information. Called if -h/--help flag present
     or usage error detected."""
-    print("Usage: python3 main.py [options]\n")
+    print("Usage: python3 main.py [options]")
     print("Options:\n")
     print("-h, --help")
-    print("    Prints this information and quits.\n")
+    print("    Prints this information and quits.")
     print("-a, --arena CAPACITY NEW_CAPACITY")
     print(
         "    Calculate how much it costs to change capacity (build/demolish)."
     )
     print("    Also prints how many weeks until profit,")
-    print("    as well as how much difference it will be in terms of rent.\n")
+    print("    as well as how much difference it will be in terms of rent.")
     print("-f, --filter LOW,MAX")
     print("    Only show players with age between LOW and MAX years.")
     print("    If no age interval is provided, default values are used.")
     print("    Current default values: ")
     print(f"    MIN = {FILTER_DEFAULT_MIN}, MAX = {FILTER_DEFAULT_MAX}")
     print("    Filter should never be standalone. It should always come with")
-    print("    either transfer or roster.\n")
+    print("    either transfer or roster.")
     print("-r, --roster")
-    print("    Parse a team roster. Paste HTML into html/roster.html.\n")
+    print("    Parse a team roster. Paste HTML into html/roster.html.")
+    print("-th, --transfer-history")
+    print("    Show some extended stats from your transfer history.")
+    print("    Paste HTML into html/transfer_history.html.")
     print("-tx, --tactics TACTIC")
     print("    Compare TACTIC to other tactics to see how often certain")
     print("    lines play against certain oppositional lines. TACTIC can")
-    print("    be left blank to compare all tactics against eachother.\n")
+    print("    be left blank to compare all tactics against eachother.")
     print("-t, --transfer")
     print("    Parse transfer list. Paste HTML into html/transfers.html.")
     sys.exit()
@@ -209,7 +212,7 @@ def main():
     players: list = []  # can contain Players or HistEntries
     colorama.init()  # <--- colors in terminal
     # Parse arguments
-    for i, arg in enumerate(len(args)):
+    for i, arg in enumerate(args):
         if arg in ("-h", "--help"):
             print_usage()
 
