@@ -1,37 +1,18 @@
 """Commonly used functions across entire applications are placed here."""
 
 import sys
-from enum import Enum
 from termcolor import colored
 
 
-CLR_APP: str = "white"
-CLR_INFO: str = "green"
-CLR_ERROR: str = "red"
+CLR_WHITE: str = "white"
+CLR_GREEN: str = "green"
+CLR_RED: str = "red"
 
 
-class MsgType(Enum):
-    """Type of application message. Determines color in terminal."""
-
-    APP = 0  # The actual output of the program
-    INFO = 1  # Status update/other information
-    ERROR = 2  # Something went wrong
-
-
-def yell(msg: str, lvl: MsgType = MsgType.INFO):
-    """Yell to the terminal in color depending on mood."""
-    if lvl == MsgType.APP:
-        color = CLR_APP
-    elif lvl == MsgType.INFO:
-        color = CLR_INFO
-    elif lvl == MsgType.ERROR:
-        color = CLR_ERROR
-    else:
-        yell("Unknown message type!", MsgType.ERROR)
-        sys.exit()
-
-    print(colored(msg, color))
-    if lvl == MsgType.ERROR:
+def msg(s: str, color: str = CLR_WHITE):
+    """msg to the terminal in color depending on mood."""
+    print(colored(s, color))
+    if color == CLR_RED:
         sys.exit()
 
 

@@ -1,12 +1,27 @@
 """Player module."""
 
 import dataclasses
-from .utils import MsgType, yell, printable_num
+from .utils import (
+    msg,
+    printable_num,
+    CLR_GREEN,
+    CLR_RED,
+)
 
 
 DIVIDER_LENGTH: int = 30
 MAX_WEEKS: int = 13
 MAX_DAYS: int = 7
+
+WEEKLY_INCREASE: dict[int, list[int]] = {
+    # Value times 1000. So 300 is 300k.
+    17: [300, 400, 500],
+    18: [400, 500, 600],
+    19: [500, 600, 700, 800],
+    20: [700, 800, 900, 1000],
+    21: [800, 900, 1000, 1100],
+    22: [900, 1000, 1100, 1200],
+}
 
 
 # pylint: disable=too-many-instance-attributes
@@ -45,12 +60,12 @@ def print_value_predictions(players: list[Player], week, day) -> None:
     the given age (after last training)."""
 
     if not players:
-        yell("No players found.", MsgType.ERROR)
+        msg("No players found.", CLR_RED)
 
     headline: str = ""
     for p in players:
         trainings: int = get_trainings_left(p, week, day)
-        yell(DIVIDER_LENGTH * "-", MsgType.INFO)
+        msg(DIVIDER_LENGTH * "-", CLR_GREEN)
 
         if p.idx:
             # This means we have parsed the transfer list
@@ -61,40 +76,16 @@ def print_value_predictions(players: list[Player], week, day) -> None:
             # At the moment this can only be roster
             headline = f"{p.name}, {p.age}, {p.pos}"
 
-        yell(headline, MsgType.APP)
-        yell(f"Värde :	 {printable_num(p.value)} kr", MsgType.APP)
-
-        if p.age == 17:
-            # Players over the age of 17 rarely develop at 300k/w.
-            # And if they do, they're shit.
-            yell(
-                f"300k/w: {printable_num(p.value + trainings * 300000)} kr",
-                MsgType.APP,
-            )
-
-        yell(
-            f"400k/w: {printable_num(p.value + trainings * 400000)} kr",
-            MsgType.APP,
+        msg(
+            headline,
         )
-        yell(
-            f"500k/w: {printable_num(p.value + trainings * 500000)} kr",
-            MsgType.APP,
+        msg(
+            f"Värde : {printable_num(p.value)} kr",
         )
-
-        if p.age > 18:
-            yell(
-                f"600k/w: {printable_num(p.value + trainings * 600000)} kr",
-                MsgType.APP,
-            )
-            yell(
-                f"700k/w: {printable_num(p.value + trainings * 700000)} kr",
-                MsgType.APP,
+        weekly_increases_list: list[int] = WEEKLY_INCREASE[p.age]
+        for wi in weekly_increases_list:
+            msg(
+                f"{wi}k/w: {printable_num(p.value + trainings * wi * 1000)} kr"
             )
 
-        if p.age > 19:
-            yell(
-                f"800k/w: {printable_num(p.value + trainings * 800000)} kr",
-                MsgType.APP,
-            )
-
-    yell(DIVIDER_LENGTH * "-", MsgType.INFO)
+    msg(DIVIDER_LENGTH * "-", CLR_GREEN)

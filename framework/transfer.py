@@ -6,11 +6,12 @@ from enum import Enum
 from bs4 import BeautifulSoup, PageElement, ResultSet
 from .player import Player
 from .utils import (
-    MsgType,
     numstr,
     printable_num,
     wstext2int,
-    yell,
+    msg,
+    CLR_GREEN,
+    CLR_RED,
 )
 
 
@@ -125,11 +126,15 @@ def print_hist_entry(e: HistEntry, rank: int) -> None:
 
 
 def show_top_entries(
-    key_func, msg: str, entries: list[HistEntry], num_top_entries: int, r: bool
+    key_func,
+    headline: str,
+    entries: list[HistEntry],
+    num_top_entries: int,
+    r: bool,
 ):
     """Prints at most NUM_PLAYERS entries."""
     entries.sort(key=key_func, reverse=r)
-    yell(msg, MsgType.INFO)
+    msg(headline, CLR_GREEN)
     n: int = min(num_top_entries, len(entries))
     for i in range(n):
         print_hist_entry(entries[i], i + 1)
@@ -183,7 +188,7 @@ def show_history(entries: list[HistEntry]) -> None:
             sold += [e]
         else:
             # Shouldn't happen but you never know!
-            yell(f"ERR transfer type detected for {e.name}.", MsgType.ERROR)
+            msg(f"ERR transfer type detected for {e.name}.", CLR_RED)
 
         bidx = -1
 

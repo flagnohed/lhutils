@@ -1,8 +1,11 @@
 """Tactics module. Compares different tactics."""
 
 from itertools import combinations
-from .utils import yell, MsgType
-
+from .utils import (
+    msg,
+    CLR_GREEN,
+    CLR_RED,
+)
 
 TACTICS = {
     "343432": (
@@ -30,7 +33,7 @@ def get_matchup_count(t1: str, t2: str) -> dict[str, int]:
     """Counts how many times each line meet other lines between
     two different tactics."""
     if len(t1) != len(t2) or t1 not in TACTICS or t2 not in TACTICS:
-        yell(f"Invalid tactics: {t1} vs {t2}", MsgType.ERROR)
+        msg(f"Invalid tactics: {t1} vs {t2}", CLR_RED)
 
     meetings: dict[str, int] = {}
 
@@ -68,12 +71,12 @@ def print_matchup_percentage(
             # Our current line is better than opps
             num_better_matchups += cur_matchup
         if show_matchups:
-            yell(f"{t1_line} vs {t2_line}: {cur_matchup}", MsgType.APP)
+            msg(
+                f"{t1_line} vs {t2_line}: {cur_matchup}",
+            )
 
     percentage: float = num_better_matchups / total_matchups * 100
-    yell(
-        f"Percentage with better line on ice: {percentage:.2f}%", MsgType.INFO
-    )
+    msg(f"Percentage with better line on ice: {percentage:.2f}%", CLR_GREEN)
 
 
 def compare_tactics(t: str) -> None:
@@ -87,7 +90,7 @@ def compare_tactics(t: str) -> None:
         matchups = [x for x in matchups if x[0] == t]
 
     for t1, t2 in matchups:
-        yell(f"===== Matchup: {t1} vs {t2} =====")
+        msg(f"===== Matchup: {t1} vs {t2} =====")
         meetings_unsorted = get_matchup_count(t1, t2)
         meetings = dict(
             sorted(meetings_unsorted.items(), key=lambda x: x[1], reverse=True)

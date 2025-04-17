@@ -25,9 +25,10 @@ from framework.transfer import (
 )
 from framework.utils import (
     numstr,
-    MsgType,
-    yell,
+    msg,
     printable_num,
+    CLR_GREEN,
+    CLR_RED,
 )
 
 # ------------------------------------------------------------------------------
@@ -139,7 +140,7 @@ def parse(filename: str, short_flag: str) -> tuple[list[Player], int, int]:
     with open(filename, errors="ignore", mode="r", encoding="utf-8") as file:
 
         if not bool(file.read(1)):
-            yell(f"{filename} is empty.", MsgType.ERROR)
+            msg(f"{filename} is empty.", CLR_RED)
 
         soup: BeautifulSoup = BeautifulSoup(
             file, "html.parser", from_encoding="utf-8"
@@ -156,7 +157,7 @@ def parse(filename: str, short_flag: str) -> tuple[list[Player], int, int]:
         # elif short_flag == "-g":
         #     parse_game(soup)
         else:
-            yell("This should not happen.", MsgType.ERROR)
+            msg("This should not happen.", CLR_RED)
 
     return players, week, day
 
@@ -234,9 +235,9 @@ def main():
 
         elif arg in ("-th", "--transfer-history"):
             if filter_active:
-                yell(
+                msg(
                     "Filter not yet compatible with transfer history.",
-                    MsgType.ERROR,
+                    CLR_RED,
                 )
             players, _, _ = parse(FILE_TRANSFER_HISTORY, "-th")
             show_history(players)
@@ -262,10 +263,10 @@ def main():
                 budget = int(args[i + 1])
             else:
                 budget = DEFAULT_BUDGET
-                yell("Note: invalid budget.", MsgType.INFO)
-                yell(
+                msg("Note: invalid budget.", CLR_GREEN)
+                msg(
                     f"Using DEFAULT_BUDGET = {printable_num(budget)} kr",
-                    MsgType.INFO,
+                    CLR_GREEN,
                 )
 
         elif arg in ("-tx", "--tactics"):
@@ -287,10 +288,10 @@ def main():
     print_value_predictions(players, week, day)
     end: float = time()
 
-    yell(f"Total players parsed: {num_total_players}")
+    msg(f"Total players parsed: {num_total_players}")
     if filter_active:
-        yell(f"Players after filtering: {len(players)}")
-    yell(f"Time elapsed: {end - start}s")
+        msg(f"Players after filtering: {len(players)}")
+    msg(f"Time elapsed: {end - start}s")
 
 
 if __name__ == "__main__":
