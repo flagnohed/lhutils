@@ -7,8 +7,8 @@ STR_PENALTY = "UTV"
 STR_SHOT = "SOG"
 STR_INJURY = "Skada,"
 STR_GAME_ID = "Match-id: "
-STR_ARENA = "Arena:"  # Whitespace intentionally left out, because of typo in 
-                      # Livehockey game file.
+STR_ARENA = "Arena:"  # Whitespace intentionally left out, because of typo in
+# Livehockey game file.
 STR_GAME_TYPE = "Matchtyp: "
 STR_GAME_DATE = "Matchdatum: "
 STR_GRADE = "Lagbetyg: "
@@ -24,13 +24,11 @@ class Event:
 
 
 @dataclass
-class Shot(Event):
-    ...
+class Shot(Event): ...
 
 
 @dataclass
-class Injury(Event):
-    ...
+class Injury(Event): ...
 
 
 @dataclass
@@ -71,7 +69,7 @@ def parse_goal(_re: str, _time: tuple[str, str], _name: str) -> Goal:
     if len(paren_content) == 2:
         # Either PP or BP goal.
         e.goal_format = paren_content
-        _re = _re[i_close_paren + 3:]
+        _re = _re[i_close_paren + 3 :]
 
     # Check for assists
     i_close_paren = _re.find(")")
@@ -107,7 +105,7 @@ def get_events(lines: list[str]) -> list[Event]:
         # Example time: (13:37)
         i_close_paren = _re.find(")")
         _time = tuple(_re[1:i_close_paren].split(":"))
-        _re = _re[i_close_paren + 2:]  # Remove succeeding whitespace as well.
+        _re = _re[i_close_paren + 2 :]  # Remove succeeding whitespace as well.
 
         # Get event type
         i_space = _re.find(" ")
@@ -121,13 +119,13 @@ def get_events(lines: list[str]) -> list[Event]:
             i_close_paren = _re.find(")")
             _penalty_type = _re[1:i_close_paren]
             e = Penalty(_time, _penalty_type)
-            _re = _re[i_close_paren + 2:]
+            _re = _re[i_close_paren + 2 :]
 
         # Now we can be sure the name of the "main" player of the event
         # comes.
         i_open_paren = _re.find("(")
         _name = _re[: i_open_paren - 1]
-        _re = _re[i_open_paren + 1:]
+        _re = _re[i_open_paren + 1 :]
 
         # Handle the rest of the event types
         if is_goal(event_type):
@@ -164,21 +162,20 @@ def get_events(lines: list[str]) -> list[Event]:
 
 
 class Team:
-    """ Dataclass representing a team in game. """
+    """Dataclass representing a team in game."""
+
     def __init__(self):
         self.name: str = ""
         self.tactics: str = ""
         self.grade: int = 0
-    
+
     def get_abbr(self) -> str:
         return self.name[:3]
-    
+
     def line_to_letter(self, line: int) -> str:
-        """ For example 1 -> A, 2 -> B, 3 -> C. """
+        """For example 1 -> A, 2 -> B, 3 -> C."""
         # 34-34-32 (1-2-3) is the normal case.
         pass
-
-
 
 
 @dataclass
@@ -204,32 +201,32 @@ def get_game_info(lines: list[str]) -> Game:
             continue
 
         if line.startswith(STR_GAME_DATE):
-            game._date = line[len(STR_GAME_DATE):].strip()
+            game._date = line[len(STR_GAME_DATE) :].strip()
 
         elif line.startswith(STR_GAME_ID):
-            game._id = line[len(STR_GAME_ID):].strip()
+            game._id = line[len(STR_GAME_ID) :].strip()
 
         elif line.startswith(STR_ARENA):
-            game.arena = line[len(STR_ARENA):].strip()
+            game.arena = line[len(STR_ARENA) :].strip()
 
         elif line.startswith(STR_GAME_TYPE):
-            game._type = line[len(STR_GAME_TYPE):].strip()
+            game._type = line[len(STR_GAME_TYPE) :].strip()
 
         elif line.startswith(STR_GRADE):
             if home_team_found:
-                away.name = lines[i-1].strip()
-                away.grade = int(line[len(away.name):])
+                away.name = lines[i - 1].strip()
+                away.grade = int(line[len(away.name) :])
             else:
                 home_team_found = True
-                home.name = lines[i-1].strip()
-                home.grade = int(line[len(home.name):])
+                home.name = lines[i - 1].strip()
+                home.grade = int(line[len(home.name) :])
 
         elif line.startswith(STR_ICE_TIME):
             if home_tactics_found:
-                away.tactics = line[len(STR_ICE_TIME):].strip()
+                away.tactics = line[len(STR_ICE_TIME) :].strip()
             else:
                 home_tactics_found = True
-                home.tactics = line[len(STR_ICE_TIME):].strip()
+                home.tactics = line[len(STR_ICE_TIME) :].strip()
 
     game.home = home
     game.away = away
@@ -238,7 +235,14 @@ def get_game_info(lines: list[str]) -> Game:
 
 
 def print_game(game: Game) -> None:
-    print(game.arena, game.home.name, game.away.name, game._date, game._id, game._type)
+    print(
+        game.arena,
+        game.home.name,
+        game.away.name,
+        game._date,
+        game._id,
+        game._type,
+    )
 
 
 def parse_game(fpath: str):
@@ -248,7 +252,6 @@ def parse_game(fpath: str):
 
     game = get_game_info(lines)
     print_game(game)
-
 
 
 # for testing
