@@ -76,12 +76,8 @@ def print_value_predictions(players: list[Player], week, day) -> None:
             # At the moment this can only be roster
             headline = f"{p.name}, {p.age}, {p.pos}"
 
-        msg(
-            headline,
-        )
-        msg(
-            f"Värde : {printable_num(p.value)} kr",
-        )
+        msg(headline)
+        msg(f"Värde : {printable_num(p.value)} kr")
         weekly_increases_list: list[int] = WEEKLY_INCREASE[p.age]
         for wi in weekly_increases_list:
             msg(

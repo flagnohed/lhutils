@@ -43,7 +43,7 @@ def wstext2int(s: str) -> str:
     i1: int = 0
     i2: int = 0
     begun: bool = False
-    for i, c in enumerate(len(s)):
+    for i, c in enumerate(s):
         if not begun and (c == "(" or c.isdigit()):
             # Indicate that we are looking for the end of the expression
             # (i.e. closed parenthesis or digit)
