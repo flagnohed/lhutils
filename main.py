@@ -19,7 +19,7 @@ from framework.player import (
 )
 from framework.tactics import compare_tactics, TACTICS
 from framework.transfer import (
-    parse_transfers,
+    parse_transfers_html,
     parse_transfer_history,
     show_history,
 )
@@ -31,14 +31,11 @@ from framework.utils import (
     CLR_RED,
 )
 
-# ------------------------------------------------------------------------------
-# Constants
-# ------------------------------------------------------------------------------
-
-FILE_GAME: str = "html/game.html"
-FILE_ROSTER: str = "html/roster.html"
-FILE_TRANSFER: str = "html/transfers.html"
-FILE_TRANSFER_HISTORY: str = "html/transfer_history.html"
+HTML_GAME: str = "input/game.html"
+HTML_ROSTER: str = "input/roster.html"
+HTML_TRANSFER: str = "input/transfers.html"
+HTML_TRANSFER_HISTORY: str = "input/transfer_history.html"
+TXT_TRANSFER: str = "input/transfers.txt"
 
 ARGC_MIN: int = 2
 ARGC_MAX: int = 4
@@ -51,10 +48,10 @@ DEFAULT_BUDGET: int = 20000000
 # | Age | PVT  | Weekly increase |
 # | 17  | 5m   | 300k            |
 # | 18  | 11m  | 400k            |
-# | 19  | 16m  | 500k            |
-# | 20  | 20m  | 600k            |
-# | 21  | 30m  | 700k            |
-# | 22  | 40m  | 700k            |
+# | 19  | 17m  | 500k            |
+# | 20  | 23m  | 600k            |
+# | 21  | 35m  | 700k            |
+# | 22  | 50m  | 800k            |
 # |-----|------|-----------------|
 PVT_DICT: dict[int, tuple[int, int]] = {
     17: (5000000, 300000),
@@ -62,7 +59,7 @@ PVT_DICT: dict[int, tuple[int, int]] = {
     19: (17000000, 500000),
     20: (23000000, 600000),
     21: (35000000, 700000),
-    22: (50000000, 700000),
+    22: (50000000, 800000),
 }
 
 
@@ -119,20 +116,6 @@ def get_current_date(soup: BeautifulSoup) -> list:
     return [int(a) for a in clean_str.split(" ") if a.isnumeric()]
 
 
-def is_flag(param: str) -> bool:
-    """Determines if argument PARAM is a valid flag."""
-    return param in [
-        "-h",
-        "--help",
-        "-r",
-        "--roster",
-        "-t",
-        "--transfer",
-        "-f",
-        "--filter",
-    ]
-
-
 def parse(filename: str, short_flag: str) -> tuple[list[Player], int, int]:
     """Creates the necessary objects for parsing and
     calls the correct parser function."""
@@ -151,7 +134,7 @@ def parse(filename: str, short_flag: str) -> tuple[list[Player], int, int]:
         if short_flag == "-r":
             players = parse_roster(soup)
         elif short_flag == "-t":
-            players = parse_transfers(soup)
+            players = parse_transfers_html(soup)
         elif short_flag == "-th":
             players = parse_transfer_history(soup)
         # elif short_flag == "-g":
@@ -219,10 +202,10 @@ def main():
             print_usage()
 
         elif arg in ("-r", "--roster"):
-            players, week, day = parse(FILE_ROSTER, "-r")
+            players, week, day = parse(HTML_ROSTER, "-r")
 
         elif arg in ("-t", "--transfer"):
-            players, week, day = parse(FILE_TRANSFER, "-t")
+            players, week, day = parse(HTML_TRANSFER, "-t")
 
         elif arg in ("-f", "--filter"):
             filter_active = True
@@ -239,7 +222,7 @@ def main():
                     "Filter not yet compatible with transfer history.",
                     CLR_RED,
                 )
-            players, _, _ = parse(FILE_TRANSFER_HISTORY, "-th")
+            players, _, _ = parse(HTML_TRANSFER_HISTORY, "-th")
             show_history(players)
             sys.exit()
 
@@ -256,7 +239,7 @@ def main():
 
         elif arg in ("-g", "--game"):
             # Under construction
-            parse(FILE_GAME, "-g")
+            parse(HTML_GAME, "-g")
 
         elif arg in ("-b", "--budget"):
             if i + 1 < len(args) and args[i + 1].isnumeric():
