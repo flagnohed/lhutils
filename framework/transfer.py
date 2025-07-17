@@ -27,8 +27,8 @@ class TransferType(Enum):
 DATE_FORMAT: str = "%Y-%m-%d"
 
 
-def parse_transfers(soup: BeautifulSoup) -> list[Player]:
-    """Main parser function for transfers. Called from main."""
+def parse_transfers_html(soup: BeautifulSoup) -> list[Player]:
+    """Main parser function for transfers if HTML file as input. Called from main."""
     players: list[Player] = []
     div: PageElement = None
 
@@ -38,10 +38,9 @@ def parse_transfers(soup: BeautifulSoup) -> list[Player]:
 
     for i, div in enumerate(information):
         player: Player = Player()
-        info: list[str] = list(div.stripped_strings)
-
         # Info has kind of a weird structure:
         # [idx, player_name, ',', 'x år', '(W-D), pos, shoots]
+        info: list[str] = list(div.stripped_strings)
 
         player.name = info[1]
         player.age = int(numstr(info[3]))
@@ -55,6 +54,68 @@ def parse_transfers(soup: BeautifulSoup) -> list[Player]:
         players += [player]
 
     return players
+
+
+def parse_until(line: str, indicator: str) -> list[str]:
+    """ Parses LINE until INDICATOR is found. Then returns 
+        the rest of LINE after INDICATOR.
+        Returns [parsed_text, rest_of_line]. """
+    i: int = line.find(indicator)
+    return [line[:i], line[i + len(indicator):]]    
+
+
+def parse_transfers_txt(lines: list[str]) -> list[Player]:
+    players: list[Player] = []
+    for line in lines:
+        if not line[0].isdigit():
+            # Not a player entry, just ignore it and move on.
+            continue
+
+        player: Player = Player()
+        idx_str, line = parse_until(line, ".")
+        player.idx = int(idx_str)
+        player.name, line = parse_until(line, " Lag: ")  # Intentional leading whitespace
+        # Can parse team name here, but since we do not care about 
+        # the selling team at the moment, we can use this helper function
+        # to skip forward in LINE.
+        _, line = parse_until(line, "Position: ")
+        player.pos, line = parse_until(line, "Skjuter: ")
+        # age_str contains both the age in years and the (week, day) tuple.
+        # We can (and we will) get all digits from age_str, and figure out
+        # what is what from there.
+        age_str, line = parse_until(line, "Värde: ")
+        nums = numstr(age_str)
+        # Age is always the first two digits
+        player.age = int(nums[:2])
+        bdate: str = nums[2:]
+        # Birth day is the last digit (can only be between 1 and 7),
+        # and the birth week is the rest of BDATE.
+        player.bday = int(bdate[-1])
+        player.bweek = int(bdate[:-1])
+
+        value_str, line = parse_until(line, "Lön: ")
+        player.value = int(numstr(value_str))
+        # We do not care about salary
+        _, line = parse_until(line, "Utgångsbud: ")
+
+        # We only care about what the current bid is, 
+        # or at least what the minimal bid we have to offer is.
+        # Therefore, we save start_bid for later.
+        start_bid, line = parse_until(line, "Deadline: ")
+        
+        current_bid, line = parse_until(line, "SMBM")  # End of interesting info
+        if current_bid == "-":
+            player.bid = "(" + start_bid + ")"
+        else:
+            # Input file will tell which team that put the latest bid, 
+            # but we do not care about that, so just parse the current bid
+            # until that info comes.
+            current_bid, line = parse_until(line, " av ")
+            player.bid = current_bid
+        
+        players += [player]
+
+    return player
 
 
 def get_transfer_type(ttstr: str) -> TransferType:
