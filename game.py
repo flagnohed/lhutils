@@ -2,6 +2,8 @@ import sys
 from dataclasses import dataclass
 from framework.utils import msg
 from framework.tactics import TACTICS
+import operator
+from tabulate import tabulate
 
 GAME_FPATH = "input/game.txt"
 STR_PENALTY = "UTV"
@@ -164,9 +166,10 @@ def get_events(lines: list[str], game: Game) -> list[Event]:
         if is_goal(event_type):
             if int(event_type[0]) == prev_score[0]:
                 team_abbr = game.away.get_abbr()
+                prev_score[1] += 1
             else:
                 team_abbr = game.home.get_abbr()
-
+                prev_score[0] += 1
             e = parse_goal(_re, _time, _name, event_type, team_abbr)
             # Goals do not have abbreviations, so add it to event list
             # and move on.
@@ -256,21 +259,44 @@ def print_game(game: Game) -> None:
 
 @dataclass
 class Player:
+    # TODO: add team abbreviation to player
     name: str = ""
     shots: int = 0
     goals: int = 0
     assists: int = 0
-    plus_minus: int = 0
+    points: int = 0
+    plus_minus: int = 0  # Not implemented yet
     pen_mins: int = 0
     is_injured: bool = False
 
 
 def get_player_by_name(name: str, players: list[Player]) -> Player:
+    """ Gets the player from players list or creates a new player."""
+    if not name:
+        return None
+
     for p in players:
         if p.name == name:
             return p
 
-    return None
+    return Player(name)
+
+
+def set_player(player: Player, players: list[Player]) -> None:
+    for i in range(len(players)):
+        if players[i].name == player.name:
+            players[i] = player
+
+
+def print_player_stats(players: list[Player]) -> None:
+    players.sort(key=operator.attrgetter("points"), reverse=True)
+    print(
+        tabulate(
+            [[p.name, p.goals, p.assists, p.points, p.shots, p.pen_mins]
+                for p in players],
+            headers=["Name", "Goals", "Assists", "Points", "Shots", "PIM"]
+        )
+    )
 
 def parse_game(fpath: str):
     lines: list[str] = []
@@ -278,14 +304,15 @@ def parse_game(fpath: str):
         lines = f.readlines()
 
     game = get_game_info(lines)
-    print(game.events)
+    # print(game.events)
     print_game(game)
 
     player: Player = None
     players: list[Player] = []
-    previous_score: list[int] = [0, 0]
 
     for e in game.events:
+        player_a1 = None
+        player_a2 = None
         if e.player_name not in [p.name for p in players]:
            # This is the first event for this player, add him to the list.
            players += [Player(e.player_name)]
@@ -304,7 +331,16 @@ def parse_game(fpath: str):
 
         elif isinstance(e, Goal):
             player.shots += 1
-
+            player.goals += 1
+            player_a1 = get_player_by_name(e.a1, players)
+            if player_a1:
+                player_a1.assists += 1
+                set_player(player_a1, players)
+            player_a2 = get_player_by_name(e.a2, players)
+            if player_a2:
+                player_a2.assists += 1
+                set_player(player_a2, players)
+            # TODO: update +/- for everyone on the ice.
 
         elif isinstance(e, Injury):
             player.is_injured = True
@@ -313,8 +349,11 @@ def parse_game(fpath: str):
             print("Unknown event type.")
             sys.exit(1)
 
+        player.points = player.goals + player.assists
+        set_player(player, players)
+
+    print_player_stats(players)
 
 
-# for testing
 if __name__ == "__main__":
     parse_game(GAME_FPATH)
