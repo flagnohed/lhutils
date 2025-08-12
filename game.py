@@ -1,14 +1,15 @@
+import sys
 from dataclasses import dataclass
 from framework.utils import msg
 from framework.tactics import TACTICS
 
-GAME_FPATH = "txt/game.txt"
+GAME_FPATH = "input/game.txt"
 STR_PENALTY = "UTV"
 STR_SHOT = "SOG"
 STR_INJURY = "Skada,"
 STR_GAME_ID = "Match-id: "
 STR_ARENA = "Arena:"  # Whitespace intentionally left out, because of typo in
-# Livehockey game file.
+                      # Livehockey game file.
 STR_GAME_TYPE = "Matchtyp: "
 STR_GAME_DATE = "Matchdatum: "
 STR_GRADE = "Lagbetyg: "
@@ -39,16 +40,10 @@ class Penalty(Event):
 @dataclass
 class Goal(Event):
     goal_format: str = "ES"
+    home_score: int = 0
+    away_score: int = 0
     a1: str = ""
     a2: str = ""
-
-
-@dataclass
-class Player:
-    name: str = ""
-    shots: int = 0
-    goals: int = 0
-    pen_mins: int = 0
 
 
 def is_event(line: str) -> bool:
@@ -59,11 +54,20 @@ def is_goal(et: str) -> bool:
     return len(et) == 3 and et[0].isnumeric() and et[2].isnumeric()
 
 
-def parse_goal(_re: str, _time: tuple[str, str], _name: str) -> Goal:
+def parse_goal(
+    _re: str,
+    _time: tuple[str, str],
+    _name: str,
+    event_type: str,
+    team_abbr: str
+) -> Goal:
     """Parses _re and checks for goal in special teams (PP/BP)
     and if we got any assists. It does NOT check team abbreviation,
     since goals does not have that."""
-    e = Goal(_time, _name)
+
+    e = Goal(_time, _name, team_abbr)
+    e.home_score = int(event_type[0])
+    e.away_score = int(event_type[2])
     i_close_paren: int = _re.find(")")
     paren_content: str = _re[:i_close_paren]
     if len(paren_content) == 2:
@@ -88,7 +92,36 @@ def parse_goal(_re: str, _time: tuple[str, str], _name: str) -> Goal:
     return e
 
 
-def get_events(lines: list[str]) -> list[Event]:
+class Team:
+    """Dataclass representing a team in game."""
+
+    def __init__(self):
+        self.name: str = ""
+        self.tactics: str = ""
+        self.grade: int = 0
+
+    def get_abbr(self) -> str:
+        return self.name[:3]
+
+    def line_to_letter(self, line: int) -> str:
+        """For example 1 -> A, 2 -> B, 3 -> C."""
+        # 34-34-32 (1-2-3) is the normal case.
+        pass
+
+
+@dataclass
+class Game:
+    def __init__(self):
+        self.home: Team = None
+        self.away: Team = None
+        self._id: str = ""
+        self._date: str = ""
+        self.arena: str = ""
+        self._type: str = ""
+        self.events: list[Event] = []
+
+
+def get_events(lines: list[str], game: Game) -> list[Event]:
     event_type: str = ""
     _time: tuple[str, str] = ("", "")
 
@@ -97,7 +130,7 @@ def get_events(lines: list[str]) -> list[Event]:
     raw_events: list[str] = [line for line in lines if is_event(line)]
     i_open_paren: int = 0
     i_close_paren: int = 0
-
+    prev_score: list[int] = [0, 0]
     for _re in raw_events:
         e = None
         _penalty_type = ""
@@ -129,7 +162,12 @@ def get_events(lines: list[str]) -> list[Event]:
 
         # Handle the rest of the event types
         if is_goal(event_type):
-            e = parse_goal(_re, _time, _name)
+            if int(event_type[0]) == prev_score[0]:
+                team_abbr = game.away.get_abbr()
+            else:
+                team_abbr = game.home.get_abbr()
+
+            e = parse_goal(_re, _time, _name, event_type, team_abbr)
             # Goals do not have abbreviations, so add it to event list
             # and move on.
             events += [e]
@@ -159,35 +197,6 @@ def get_events(lines: list[str]) -> list[Event]:
         events += [e]
 
     return events
-
-
-class Team:
-    """Dataclass representing a team in game."""
-
-    def __init__(self):
-        self.name: str = ""
-        self.tactics: str = ""
-        self.grade: int = 0
-
-    def get_abbr(self) -> str:
-        return self.name[:3]
-
-    def line_to_letter(self, line: int) -> str:
-        """For example 1 -> A, 2 -> B, 3 -> C."""
-        # 34-34-32 (1-2-3) is the normal case.
-        pass
-
-
-@dataclass
-class Game:
-    def __init__(self):
-        self.home: Team = None
-        self.away: Team = None
-        self._id: str = ""
-        self._date: str = ""
-        self.arena: str = ""
-        self._type: str = ""
-        self.events: list[Event] = []
 
 
 def get_game_info(lines: list[str]) -> Game:
@@ -230,7 +239,7 @@ def get_game_info(lines: list[str]) -> Game:
 
     game.home = home
     game.away = away
-    game.events = get_events(lines)
+    game.events = get_events(lines, game)
     return game
 
 
@@ -245,13 +254,65 @@ def print_game(game: Game) -> None:
     )
 
 
+@dataclass
+class Player:
+    name: str = ""
+    shots: int = 0
+    goals: int = 0
+    assists: int = 0
+    plus_minus: int = 0
+    pen_mins: int = 0
+    is_injured: bool = False
+
+
+def get_player_by_name(name: str, players: list[Player]) -> Player:
+    for p in players:
+        if p.name == name:
+            return p
+
+    return None
+
 def parse_game(fpath: str):
     lines: list[str] = []
     with open(fpath, encoding="utf-8") as f:
         lines = f.readlines()
 
     game = get_game_info(lines)
+    print(game.events)
     print_game(game)
+
+    player: Player = None
+    players: list[Player] = []
+    previous_score: list[int] = [0, 0]
+
+    for e in game.events:
+        if e.player_name not in [p.name for p in players]:
+           # This is the first event for this player, add him to the list.
+           players += [Player(e.player_name)]
+
+        player = get_player_by_name(e.player_name, players)
+        if player is None:
+            print(f"Could not find player named {e.player_name}.")
+            sys.exit(1)
+
+        if isinstance(e, Penalty):
+            # 5 min / 2 + 2 min not implemented in game.
+            player.pen_mins += 2
+
+        elif isinstance(e, Shot):
+            player.shots += 1
+
+        elif isinstance(e, Goal):
+            player.shots += 1
+
+
+        elif isinstance(e, Injury):
+            player.is_injured = True
+
+        else:
+            print("Unknown event type.")
+            sys.exit(1)
+
 
 
 # for testing
