@@ -10,6 +10,7 @@ import colorama
 
 from bs4 import BeautifulSoup
 from framework.arena import print_test_case
+from framework.game import parse_game
 from framework.roster import parse_roster
 from framework.player import (
     Player,
@@ -36,6 +37,7 @@ HTML_ROSTER: str = "input/roster.html"
 HTML_TRANSFER: str = "input/transfers.html"
 HTML_TRANSFER_HISTORY: str = "input/transfer_history.html"
 TXT_TRANSFER: str = "input/transfers.txt"
+TXT_GAME: str = "input/game.txt"
 
 ARGC_MIN: int = 2
 ARGC_MAX: int = 4
@@ -54,11 +56,11 @@ DEFAULT_BUDGET: int = 20000000
 # | 22  | 50m  | 800k            |
 # |-----|------|-----------------|
 PVT_DICT: dict[int, tuple[int, int]] = {
-    17: (5000000, 300000),
+    17: (6000000, 300000),
     18: (11000000, 400000),
-    19: (17000000, 500000),
-    20: (23000000, 600000),
-    21: (35000000, 700000),
+    19: (18000000, 500000),
+    20: (28000000, 600000),
+    21: (40000000, 700000),
     22: (50000000, 800000),
 }
 
@@ -137,8 +139,8 @@ def parse(filename: str, short_flag: str) -> tuple[list[Player], int, int]:
             players = parse_transfers_html(soup)
         elif short_flag == "-th":
             players = parse_transfer_history(soup)
-        # elif short_flag == "-g":
-        #     parse_game(soup)
+        elif short_flag == "-g":
+            parse_game(soup)
         else:
             msg("This should not happen.", CLR_RED)
 
@@ -239,7 +241,7 @@ def main():
 
         elif arg in ("-g", "--game"):
             # Under construction
-            parse(HTML_GAME, "-g")
+            parse(TXT_GAME, "-g")
 
         elif arg in ("-b", "--budget"):
             if i + 1 < len(args) and args[i + 1].isnumeric():

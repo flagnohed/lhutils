@@ -304,7 +304,6 @@ def parse_game(fpath: str):
         lines = f.readlines()
 
     game = get_game_info(lines)
-    # print(game.events)
     print_game(game)
 
     player: Player = None
