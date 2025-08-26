@@ -57,11 +57,11 @@ def parse_transfers_html(soup: BeautifulSoup) -> list[Player]:
 
 
 def parse_until(line: str, indicator: str) -> list[str]:
-    """ Parses LINE until INDICATOR is found. Then returns 
+    """ Parses LINE until INDICATOR is found. Then returns
         the rest of LINE after INDICATOR.
         Returns [parsed_text, rest_of_line]. """
     i: int = line.find(indicator)
-    return [line[:i], line[i + len(indicator):]]    
+    return [line[:i], line[i + len(indicator):]]
 
 
 def parse_transfers_txt(lines: list[str]) -> list[Player]:
@@ -75,7 +75,7 @@ def parse_transfers_txt(lines: list[str]) -> list[Player]:
         idx_str, line = parse_until(line, ".")
         player.idx = int(idx_str)
         player.name, line = parse_until(line, " Lag: ")  # Intentional leading whitespace
-        # Can parse team name here, but since we do not care about 
+        # Can parse team name here, but since we do not care about
         # the selling team at the moment, we can use this helper function
         # to skip forward in LINE.
         _, line = parse_until(line, "Position: ")
@@ -98,21 +98,21 @@ def parse_transfers_txt(lines: list[str]) -> list[Player]:
         # We do not care about salary
         _, line = parse_until(line, "Utgångsbud: ")
 
-        # We only care about what the current bid is, 
+        # We only care about what the current bid is,
         # or at least what the minimal bid we have to offer is.
         # Therefore, we save start_bid for later.
         start_bid, line = parse_until(line, "Deadline: ")
-        
+
         current_bid, line = parse_until(line, "SMBM")  # End of interesting info
         if current_bid == "-":
             player.bid = "(" + start_bid + ")"
         else:
-            # Input file will tell which team that put the latest bid, 
+            # Input file will tell which team that put the latest bid,
             # but we do not care about that, so just parse the current bid
             # until that info comes.
             current_bid, line = parse_until(line, " av ")
             player.bid = current_bid
-        
+
         players += [player]
 
     return player
@@ -181,8 +181,6 @@ def print_hist_entry(e: HistEntry, rank: int) -> None:
         print(f"    Money {g_or_l}: {printable_num(e.money_gained)} kr")
     else:
         print(f"    Transfer sum: {printable_num(e.transfer_sum)} kr")
-
-    if e.ttype != TransferType.FLIP:
         print(f"    Player value: {printable_num(e.player_value)} kr")
 
 
