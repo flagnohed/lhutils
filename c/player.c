@@ -2,7 +2,7 @@
 
 /* Calculates the number of training opportunities left before
    player turns one year older. */
-uint8_t get_trainings_left(Player_t *p, Date_t cur_date) {
+uint8_t get_trainings_left(const Player_t *p, const Date_t cur_date) {
     /* Add MAX_WEEKS before taking the remainder to avoid negative
        training opportunities incase current week > birth week. */
     uint8_t dose_reset, last_training, weeks;

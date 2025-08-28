@@ -28,6 +28,6 @@ typedef struct {
     Position_t pos;
 }   Player_t;
 
-uint8_t get_trainings_left(Player_t *p, Date_t cur_date);
+uint8_t get_trainings_left(const Player_t *p, const Date_t cur_date);
 
 #endif
