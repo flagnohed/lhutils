@@ -1,0 +1,33 @@
+#include <stdint.h>
+#ifndef PLAYER_H_
+#define PLAYER_H_
+
+#define LEN_DIVIDER 30
+#define MAX_DAYS 7
+#define MAX_WEEKS 13
+
+typedef struct {
+    uint8_t day;
+    uint8_t week;
+}   Date_t;
+
+typedef enum {
+    POS_INV,
+    POS_G,
+    POS_D,
+    POS_F,
+}   Position_t;
+
+typedef struct {
+    uint8_t age;
+    unsigned int value;
+    unsigned int transfer_list_idx;  /* 1-indexed. 0 is default. */
+    unsigned int current_bid;        /* Only used in transfers. */
+    char *name;
+    Date_t bdate;
+    Position_t pos;
+}   Player_t;
+
+uint8_t get_trainings_left(Player_t *p, Date_t cur_date);
+
+#endif
