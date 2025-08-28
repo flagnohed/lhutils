@@ -1,8 +1,10 @@
 /* All tests return 0 on success, 1 on failure. */
 #include <string.h>
 #include <stdio.h>
-#include "test.h"
+#include "parser.h"
 #include "player.h"
+#include "test.h"
+
 
 int test_get_trainings_left(void) {
     Player_t p;
@@ -39,5 +41,10 @@ int test_print_value_predictions(void) {
     cur_date.day = 1;
 
     print_value_predictions(&p, cur_date);
+    return 0;
+}
+
+int test_parse_transfer_list(void) {
+    parse_transfer_list();
     return 0;
 }

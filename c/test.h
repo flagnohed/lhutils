@@ -2,6 +2,7 @@
 #define TEST_H_
 
 int test_get_trainings_left(void);
+int test_parse_transfer_list(void);
 int test_print_value_predictions(void);
 
 #endif
