@@ -9,22 +9,29 @@
 #define MAX_PLAYER_COUNT 1024
 
 Position_t str_to_pos(const char *pos_str) {
-    if (strcmp(pos_str, "Forward\n") == 0) {
-        return POS_F;
-    }
-    if (strcmp(pos_str, "Back\n") == 0) {
-        return POS_D;
-    }
-    if (strcmp(pos_str, "Målvakt\n") == 0) {
-        return POS_G;
-    }
+    if (strcmp(pos_str, "Forward\n") == 0) { return POS_F; }
+    if (strcmp(pos_str, "Back\n") == 0)    { return POS_D; }
+    if (strcmp(pos_str, "Målvakt\n") == 0) { return POS_G; }
     return POS_INV;
 }
 
-void parse_transfer_list() {
-    /* The transfer list can look one of two ways depending on browser.
+/* Takes a string like for example "13 370 000 kr" and
+   converts it to an unsigned int, like 13370000. */
+static unsigned int value_str_to_uint(const char *value_str) {
+    char digits[MAX_LINE_SIZE] = "";
+    while (*value_str != '\0') {
+        if (*value_str >= '0' || *value_str <= '9') {
+            strncat(digits, value_str, 1);
+        }
+        value_str++;
+    }
+    return atoi(digits);
+}
+
+/* The transfer list can look one of two ways depending on browser.
        TODO: implement parser for other browsers than firefox.
        (See transfer_list{_2}.txt for comparison) */
+void parse_transfer_list() {
     FILE *fp;
     char line[MAX_LINE_SIZE], *line_ptr, age_buf[3], week_buf[3] = "";
     bool is_parsing = false;
@@ -81,10 +88,12 @@ void parse_transfer_list() {
             }
         }
         else if (strncmp(line, "Värde: ", strlen("Värde: ")) == 0) {
-
+            line_ptr += strlen("Värde: ");
+            player->value = value_str_to_uint(line_ptr);
         }
         else if (strncmp(line, "Utgångsbud: ", strlen("Utgångsbud: ")) == 0) {
-
+            /* Save the starting bid into a temp variable. If we later find that
+               this player has no current bid, player->bid is set to the starting bid. */
         }
         else if (strncmp(line, "Aktuellt bud: ", strlen("Aktuellt bud: ")) == 0) {
             /* If the next character is '-', no one has placed a bid on this player yet.
