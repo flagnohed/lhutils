@@ -4,8 +4,8 @@
 
 static int run_tests(void) {
     if (test_get_trainings_left()) return 1;
-    if (test_print_value_predictions()) return 1;  /* Manual inspection. */
-    if (test_parse_transfer_list()) return 1;
+    if (test_print_value_predictions()) return 1;  /* Manual inspection of output. */
+    if (test_parse_transfer_list()) return 1;      /* Manual inspection of output. */
     printf("All tests passed.\n");
     return 0;
 }

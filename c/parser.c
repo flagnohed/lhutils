@@ -50,11 +50,13 @@ void parse_transfer_list() {
             continue;
         }
         line_ptr = &line[0];
-        if (strcmp(line, "Position: ") == 0) {
+        /* Using strlen instead of sizeof on the string literal since
+           we want to check if line starts with this string, not equals entirely. */
+        if (strncmp(line, "Position: ", strlen("Position: ")) == 0) {
             line_ptr += strlen("Position: ");
             player->pos = str_to_pos(line_ptr);
         }
-        else if (strcmp(line, "Ålder: ") == 0) {
+        else if (strncmp(line, "Ålder: ", strlen("Ålder: ")) == 0) {
             line_ptr += strlen("Ålder: ");
             strncpy(age_buf, line_ptr, 2);
             player->age = atoi(age_buf);
@@ -77,6 +79,19 @@ void parse_transfer_list() {
                     player->bdate.week = atoi(week_buf);
                 }
             }
+        }
+        else if (strncmp(line, "Värde: ", strlen("Värde: ")) == 0) {
+
+        }
+        else if (strncmp(line, "Utgångsbud: ", strlen("Utgångsbud: ")) == 0) {
+
+        }
+        else if (strncmp(line, "Aktuellt bud: ", strlen("Aktuellt bud: ")) == 0) {
+            /* If the next character is '-', no one has placed a bid on this player yet.
+               If it is a digit, we have encountered a bid (in "pretty format",
+               e.g. 3 500 000 kr). */
+
+            /* We are done with the current player here. Add it to players list and continue. */
         }
     }
     fclose(fp);
