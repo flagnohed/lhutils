@@ -33,6 +33,8 @@ int test_print_value_predictions(void) {
     Date_t cur_date;
     memset(&p, 0, sizeof(p));
 
+    p.name = "Tester McTester";
+    p.pos = POS_F;
     p.value = 15000000;
     p.bdate.week = 2;
     p.bdate.day = 2;
