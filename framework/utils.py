@@ -40,17 +40,15 @@ def numstr(s: str) -> str:
 
 def wstext2int(s: str) -> str:
     """Strips S of trailing and leading whitespace."""
-    i1: int = 0
-    i2: int = 0
-    begun: bool = False
+    i1: int = -1
+    i2: int = -1
     for i, c in enumerate(s):
-        if not begun and (c == "(" or c.isdigit()):
+        if i1 == -1 and (c == "(" or c.isdigit()):
             # Indicate that we are looking for the end of the expression
             # (i.e. closed parenthesis or digit)
-            begun = True
             i1 = i
 
-        elif begun and (
+        elif i1 != -1 and (
             c in ["\n", "\t"] or i + 1 < len(s) and c == s[i + 1] == " "
         ):
             i2 = i

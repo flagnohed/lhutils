@@ -1,3 +1,9 @@
 /.vscode/*
 /html/*
 /__pycache__/*
+/lib/*
+/bin/*
+/framework/__pycache__/*
+/lib64
+tags
+pyvenv.cfg
