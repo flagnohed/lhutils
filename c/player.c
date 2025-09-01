@@ -5,7 +5,9 @@
 #include "player.h"
 
 #define LEN_WEEKLY_INCREASES 5
-#define MAX_PREDICT_AGE 23  /* Change this when adding more entries. */
+#define MAX_BUF_LEN_VALUE 11      /* Max e.g. "9999999999". */
+#define MAX_BUF_LEN_VALUE_STR 19  /* Max e.g. "(9 999 999 999 kr)". */
+#define MAX_PREDICT_AGE 23        /* Change this when adding more entries. */
 
 /* Age, followed by pontential weekly increase values. */
 const unsigned int weekly_increases[][LEN_WEEKLY_INCREASES] = {
@@ -53,11 +55,11 @@ static const char *pos_to_str(const Position_t pos) {
    add_parens only used when printing starting bid. */
 static void value_to_str(const Player_t *p, const bool bid, char *pretty_buf) {
     size_t num_starting_digits = 0;
-    char raw_buf[11] = "";   /* Max 10 digits + null byte. */
+    char raw_buf[MAX_BUF_LEN_VALUE] = "";   /* Max 10 digits + null byte. */
     char *raw_buf_ptr;
 
-    snprintf(raw_buf, 11, "%u", bid ? p->bid : p-> value);
-    num_starting_digits = strnlen(raw_buf, 11) % 3;
+    snprintf(raw_buf, MAX_BUF_LEN_VALUE, "%u", bid ? p->bid : p-> value);
+    num_starting_digits = strnlen(raw_buf, MAX_BUF_LEN_VALUE) % 3;
     raw_buf_ptr = &raw_buf[0];
 
 
@@ -92,8 +94,8 @@ static void value_to_str(const Player_t *p, const bool bid, char *pretty_buf) {
    in combination with his age, try to predict the player value at the
    end of the current player age. At the end, print those predictions. */
 void print_value_predictions(const Player_t *p, const Date_t cur_date) {
-    char value_buf[19] = "";  /* Max e.g. "(9 999 999 999 kr)". */
-    char bid_buf[19] = "";
+    char value_buf[MAX_BUF_LEN_VALUE_STR] = "";
+    char bid_buf[MAX_BUF_LEN_VALUE_STR] = "";
     uint8_t trainings = get_trainings_left(p, cur_date);
     const char *pos_str = pos_to_str(p->pos);
     const unsigned int *w;
