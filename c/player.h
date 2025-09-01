@@ -26,7 +26,7 @@ typedef struct {
     unsigned int transfer_list_idx;  /* 1-indexed. 0 is default. */
     unsigned int bid;                /* Current bid or starting bid. */
     bool has_bid;                    /* True if someone has bidded on this player. */
-    char *name;
+    const char *name;
     Date_t bdate;
     Position_t pos;
 }   Player_t;

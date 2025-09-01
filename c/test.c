@@ -29,7 +29,7 @@ int test_get_trainings_left(void) {
    is instead done via manual inspection (i.e., this test will
    always return 0). */
 int test_print_value_predictions(void) {
-    Player_t p;
+    Player_t p = {0};
     Date_t cur_date;
     memset(&p, 0, sizeof(p));
 

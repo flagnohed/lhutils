@@ -52,26 +52,33 @@ static const char *pos_to_str(const Position_t pos) {
 /* Transforms player value or bid to a printable string.
    add_parens only used when printing starting bid. */
 static void value_to_str(const Player_t *p, const bool bid, char *pretty_buf) {
-    size_t old_i = 0;
+    size_t num_starting_digits = 0;
     char raw_buf[11] = "";   /* Max 10 digits + null byte. */
+    char *raw_buf_ptr;
+
     snprintf(raw_buf, 11, "%u", bid ? p->bid : p-> value);
+    num_starting_digits = strnlen(raw_buf, 11) % 3;
+    raw_buf_ptr = &raw_buf[0];
+
+
     if (bid && !p->has_bid) {
         /* Add parenthesis if we are printing a starting bid. */
         pretty_buf[0] = '(';
     }
     /* We want to transform raw_buf for example like this:
-       7500000 -> 7 500 000 kr. */
-    old_i += strnlen(raw_buf, 11) % 3;
+       7500000 -> 7 500 000 kr.  */
     #pragma GCC diagnostic push
     #pragma GCC diagnostic ignored "-Wstringop-truncation"
-    strncat(pretty_buf, raw_buf, old_i);
+    strncat(pretty_buf, raw_buf_ptr, num_starting_digits);
     #pragma GCC diagnostic pop
 
+    raw_buf_ptr += num_starting_digits;
     strncat(pretty_buf, " ", 1);
-    while (old_i < strlen(raw_buf)) {
-        strncat(pretty_buf, raw_buf, 3);
+
+    while (*raw_buf_ptr != '\0') {
+        strncat(pretty_buf, raw_buf_ptr, 3);
         strncat(pretty_buf, " ", 1);
-        old_i += 3;
+        raw_buf_ptr += 3;
     }
     /* No more digits to transfer to pretty_buf! */
     strncat(pretty_buf, "kr", 2);

@@ -8,7 +8,7 @@
 #define MAX_LINE_SIZE 256
 #define MAX_PLAYER_COUNT 1024
 
-Position_t str_to_pos(const char *pos_str) {
+static Position_t str_to_pos(const char *pos_str) {
     if (strcmp(pos_str, "Forward\n") == 0) { return POS_F; }
     if (strcmp(pos_str, "Back\n") == 0)    { return POS_D; }
     if (strcmp(pos_str, "Målvakt\n") == 0) { return POS_G; }
@@ -20,7 +20,7 @@ Position_t str_to_pos(const char *pos_str) {
 static unsigned int value_str_to_uint(const char *value_str) {
     char digits[MAX_LINE_SIZE] = "";
     while (*value_str != '\0') {
-        if (*value_str >= '0' || *value_str <= '9') {
+        if (*value_str >= '0' && *value_str <= '9') {
             strncat(digits, value_str, 1);
         }
         value_str++;
