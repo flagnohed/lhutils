@@ -7,6 +7,8 @@
 #define LEN_DIVIDER 30
 #define MAX_DAYS 7
 #define MAX_WEEKS 13
+#define MAX_BUF_LEN_VALUE 11      /* Max e.g. "9999999999". */
+#define MAX_BUF_LEN_VALUE_STR 19  /* Max e.g. "(9 999 999 999 kr)". */
 
 typedef struct {
     uint8_t day;
@@ -26,12 +28,13 @@ typedef struct {
     unsigned int transfer_list_idx;  /* 1-indexed. 0 is default. */
     unsigned int bid;                /* Current bid or starting bid. */
     bool has_bid;                    /* True if someone has bidded on this player. */
-    const char *name;
+    char name[256];
     Date_t bdate;
     Position_t pos;
 }   Player_t;
 
 uint8_t get_trainings_left(const Player_t *p, const Date_t cur_date);
+void print_player_info(const Player_t *p);
 void print_value_predictions(const Player_t *p, const Date_t cur_date);
 
 #endif

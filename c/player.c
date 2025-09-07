@@ -5,8 +5,6 @@
 #include "player.h"
 
 #define LEN_WEEKLY_INCREASES 5
-#define MAX_BUF_LEN_VALUE 11      /* Max e.g. "9999999999". */
-#define MAX_BUF_LEN_VALUE_STR 19  /* Max e.g. "(9 999 999 999 kr)". */
 #define MAX_PREDICT_AGE 23        /* Change this when adding more entries. */
 
 /* Age, followed by pontential weekly increase values. */
@@ -39,20 +37,22 @@ uint8_t get_trainings_left(const Player_t *p, const Date_t cur_date) {
 
 static const char *pos_to_str(const Position_t pos) {
     switch (pos) {
-        case POS_G:
-            return "G";
-        case POS_D:
-            return "D";
-        case POS_F:
-            return "F";
+        case POS_G: return "Goalie";
+        case POS_D: return "Defender";
+        case POS_F: return "Forward";
         case POS_INV:
+            /* Fallthrough */
         default:
             return "?";
     }
 }
 
 /* Transforms player value or bid to a printable string.
-   add_parens only used when printing starting bid. */
+   add_parens only used when printing starting bid.
+   TODO: make a specific function for writing a value
+   "pretty", and then special cases (or even a separate function *calling* this function
+   that handles the cases with parenthesis.) This is the best way to pretty print
+   value predicitions. */
 static void value_to_str(const Player_t *p, const bool bid, char *pretty_buf) {
     size_t num_starting_digits = 0;
     char raw_buf[MAX_BUF_LEN_VALUE] = "";   /* Max 10 digits + null byte. */
@@ -61,7 +61,7 @@ static void value_to_str(const Player_t *p, const bool bid, char *pretty_buf) {
     snprintf(raw_buf, MAX_BUF_LEN_VALUE, "%u", bid ? p->bid : p-> value);
     num_starting_digits = strnlen(raw_buf, MAX_BUF_LEN_VALUE) % 3;
     raw_buf_ptr = &raw_buf[0];
-
+    memset(pretty_buf, 0, MAX_BUF_LEN_VALUE_STR);
 
     if (bid && !p->has_bid) {
         /* Add parenthesis if we are printing a starting bid. */
@@ -75,14 +75,18 @@ static void value_to_str(const Player_t *p, const bool bid, char *pretty_buf) {
     #pragma GCC diagnostic pop
 
     raw_buf_ptr += num_starting_digits;
-    strncat(pretty_buf, " ", 1);
+    if (num_starting_digits) {
+        /* We don't want leading spaces, so check that we have
+           added digits. */
+        strncat(pretty_buf, " ", 1);
+    }
 
     while (*raw_buf_ptr != '\0') {
         strncat(pretty_buf, raw_buf_ptr, 3);
         strncat(pretty_buf, " ", 1);
         raw_buf_ptr += 3;
     }
-    /* No more digits to transfer to pretty_buf! */
+    /* No more digits to transfer to pretty_buf. */
     strncat(pretty_buf, "kr", 2);
     if (bid && !p->has_bid) {
         /* Close the parenthesis on the starting bid. */
@@ -90,41 +94,41 @@ static void value_to_str(const Player_t *p, const bool bid, char *pretty_buf) {
     }
 }
 
+void print_player_info(const Player_t *p) {
+    char pretty_buf[MAX_BUF_LEN_VALUE_STR];
+    value_to_str(p, false, pretty_buf);
+    printf("%s, %s, %u\n", p->name, pos_to_str(p->pos), p->age);
+    printf("Value: %s\n", pretty_buf);
+    if (p->transfer_list_idx) {
+        value_to_str(p, true, pretty_buf);
+        printf("Current bid: %s\n", pretty_buf);
+    }
+}
+
 /* Based on how many more training opportunities the player has,
    in combination with his age, try to predict the player value at the
    end of the current player age. At the end, print those predictions. */
 void print_value_predictions(const Player_t *p, const Date_t cur_date) {
-    char value_buf[MAX_BUF_LEN_VALUE_STR] = "";
-    char bid_buf[MAX_BUF_LEN_VALUE_STR] = "";
-    uint8_t trainings = get_trainings_left(p, cur_date);
-    const char *pos_str = pos_to_str(p->pos);
     const unsigned int *w;
     size_t i;
-
-    if (p->transfer_list_idx == 0) {
-        /* This player was parsed from a roster. */
-        printf("%s - %s, %" PRIu8 "\n", pos_str, p->name, p->age);
-    }
-    else {
-        value_to_str(p, !p->has_bid, bid_buf);
-        printf("%u. %s - %s, %" PRIu8 ", %s\n",
-            p->transfer_list_idx, pos_str, p->name, p->age, bid_buf);
-    }
-    value_to_str(p, false, value_buf);
-    printf("Current value: %s\n", value_buf);
+    uint8_t trainings = get_trainings_left(p, cur_date);
 
     if (p->age > MAX_PREDICT_AGE) {
-        printf("%s is too old, skipping prediction.\n", p->name);
+        // printf("%s is too old, skipping prediction.\n", p->name);
         return;
     }
+    print_player_info(p);
+    printf("----------\n");
     for (w = *weekly_increases; w != NULL; w += LEN_WEEKLY_INCREASES) {
         if (*w != p->age) {
             /* Loop until we find the correct age. */
             continue;
         }
         for (i = 1; i < LEN_WEEKLY_INCREASES; i++) {
+            /* TODO: print this as value_to_str */
             printf("%u/w: %u kr\n", w[i], p->value + trainings * w[i]);
         }
         break;
     }
+    printf("----------\n\n");
 }

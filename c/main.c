@@ -31,5 +31,10 @@ int main(int argc, char **argv) {
     if (strcmp(argv[1], "-t") == 0 || strcmp(argv[1], "--test") == 0) {
         return run_tests();
     }
+    /*
+    if (strcmp(argv[1], "-tl") == 0 || strcmp(argv[1], "--transfer-list") == 0) {
+        parse_transfer_list();
+    }
+    */
     return 0;
 }

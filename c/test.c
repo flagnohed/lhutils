@@ -32,8 +32,8 @@ int test_print_value_predictions(void) {
     Player_t p = {0};
     Date_t cur_date;
     memset(&p, 0, sizeof(p));
-
-    p.name = "Tester McTester";
+    memcpy(p.name, "Tester McTester", sizeof("Tester McTester"));
+    // p.name = "Tester McTester";
     p.pos = POS_F;
     p.value = 15000000;
     p.bdate.week = 2;
@@ -41,6 +41,9 @@ int test_print_value_predictions(void) {
     p.age = 18;
     cur_date.week = 1;
     cur_date.day = 1;
+    p.transfer_list_idx = 69;
+    p.bid = 1337420;
+    p.has_bid = false;
 
     print_value_predictions(&p, cur_date);
     return 0;
