@@ -8,6 +8,10 @@
 #define MAX_LINE_SIZE 256
 #define MAX_PLAYER_COUNT 1024
 
+#define IND_CUR_WEEK "Vecka "  /* Colon intentionally left out because of transfer file format. */
+#define IND_POS      "Position: "
+#
+
 static Position_t str_to_pos(const char *pos_str) {
     if (strcmp(pos_str, "Forward\n") == 0) { return POS_F; }
     if (strcmp(pos_str, "Back\n") == 0)    { return POS_D; }
