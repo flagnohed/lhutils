@@ -72,8 +72,7 @@ void parse_transfer_list() {
     while (fgets(line, MAX_LINE_SIZE, fp) && player_count < MAX_PLAYER_COUNT) {
         if (line[0] >= '0' && line[0] <= '9' && line[strlen(line) - 2] == '.') {
             /* This is the beginning of a player entry. This means
-               that the next line contains the player name.
-               BUG: last line of file is player->name. */
+               that the next line contains the player name. */
             is_parsing = true;
             next_is_name = true;
             player = malloc(sizeof(Player_t));
@@ -88,10 +87,8 @@ void parse_transfer_list() {
            we want to check if line starts with this string, not equals entirely. */
         if (next_is_name) {
             /* Skip the last character as it is a line break. */
-            line_ptr[strlen(line_ptr) - 1] = '\0';
-            memcpy(player->name, line_ptr, strlen(line_ptr));
-            player->name[strlen(line_ptr)] = '\0';
-            printf("name: %s\n", player->name);
+            memcpy(player->name, line_ptr, strlen(line_ptr) - 1);
+            player->name[strlen(line_ptr) - 1] = '\0';
             next_is_name = false;
         }
         else if (strncmp(line, "Vecka ", strlen("Vecka ")) == 0) {
