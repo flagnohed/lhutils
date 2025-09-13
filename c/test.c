@@ -10,6 +10,7 @@ int test_get_trainings_left(void) {
     Player_t p;
     Date_t cur_date;
     uint8_t res;
+
     memset(&p, 0, sizeof(p));
 
     p.bdate.week = 1;
@@ -31,9 +32,11 @@ int test_get_trainings_left(void) {
 int test_print_value_predictions(void) {
     Player_t p = {0};
     Date_t cur_date;
+    const char *test_name = "Tester McTester";
+
     memset(&p, 0, sizeof(p));
-    memcpy(p.name, "Tester McTester", sizeof("Tester McTester"));
-    // p.name = "Tester McTester";
+    memcpy(p.name, test_name, sizeof(test_name));
+
     p.pos = POS_F;
     p.value = 15000000;
     p.bdate.week = 2;
