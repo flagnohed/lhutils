@@ -5,7 +5,7 @@
 #include "player.h"
 
 #define LEN_WEEKLY_INCREASES 5
-#define MAX_PREDICT_AGE 23        /* Change this when adding more entries. */
+#define MAX_PREDICT_AGE 23  /* Change this when adding more entries. */
 #define DIVIDER "--------------------\n"
 
 /* Age, followed by pontential weekly increase values. */
@@ -52,11 +52,7 @@ static const char *pos_to_str(const Position_t pos) {
 }
 
 /* Transforms player value or bid to a printable string.
-   add_parens only used when printing starting bid.
-   TODO: make a specific function for writing a value
-   "pretty", and then special cases (or even a separate function *calling* this function
-   that handles the cases with parenthesis.) This is the best way to pretty print
-   value predicitions. */
+   `add_parens` true when printing starting bid. */
 static void value_to_str(const unsigned int value, const bool add_parens) {
     size_t num_starting_digits = 0;
     char raw_buf[MAX_BUF_LEN_VALUE] = "";   /* Max 10 digits + null byte. */
