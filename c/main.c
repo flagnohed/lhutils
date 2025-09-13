@@ -1,5 +1,7 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
+#include "parser.h"
 #include "test.h"
 
 static int run_tests(void) {
@@ -11,30 +13,38 @@ static int run_tests(void) {
 }
 
 static void print_usage(void) {
-    printf("--- lhutils ---\n");
+    printf("----- lhutils -----\n\n");
     printf("Usage: ./lhutils [OPTION]\n");
-    printf("[OPTION]:\n");
+    printf("[OPTION]:\n\n");
+    printf("-h, --help\n");
+    printf("\t\tPrint this information and exit.\n\n");
     printf("-t, --test\n");
-    printf("\tRun all unit tests.\n");
+    printf("\t\tRun all unit tests.\n\n");
+    printf("-tl, --transfer-list\n");
+    printf("\t\tParse transferlist and output predicted values.\n\n");
 }
 
 int main(int argc, char **argv) {
     /* Parse arguments. */
     if (argc == 1) {
         print_usage();
-        return 0;
+        return EXIT_SUCCESS;
     }
     if (argc != 2) {
         print_usage();
-        return 1;
+        return EXIT_FAILURE;
+    }
+    if (strcmp(argv[1], "-h") == 0 || strcmp(argv[1], "--help") == 0) {
+        print_usage();
+        return EXIT_SUCCESS;
     }
     if (strcmp(argv[1], "-t") == 0 || strcmp(argv[1], "--test") == 0) {
         return run_tests();
     }
-    /*
     if (strcmp(argv[1], "-tl") == 0 || strcmp(argv[1], "--transfer-list") == 0) {
-        parse_transfer_list();
+        return parse_transfer_list();
     }
-    */
-    return 0;
+    printf("Unrecognized argument: %s\n", argv[1]);
+    print_usage();
+    return EXIT_FAILURE;
 }

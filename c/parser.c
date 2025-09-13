@@ -61,10 +61,9 @@ static void str_to_date(const char *line_ptr, Date_t *date) {
     }
 }
 
-/* The transfer list can look one of two ways depending on browser.
-       TODO: implement parser for other browsers than firefox.
-       (See transfer_list{_2}.txt for comparison) */
-void parse_transfer_list() {
+int parse_transfer_list() {
+    /* The transfer list can look one of two ways depending on browser.
+       (See transfer_list(_2).txt for comparison) */
     char line[MAX_LINE_SIZE], start_bid_buf[MAX_BUF_LEN_VALUE_STR], age_buf[3], *line_ptr;
     bool is_parsing = false, next_is_name = false;
     unsigned int player_count = 0;
@@ -75,7 +74,7 @@ void parse_transfer_list() {
 
     if ((fp = fopen(FNAME_TRANSFER_LIST, "r")) == NULL) {
         printf("Could not open file %s\n", FNAME_TRANSFER_LIST);
-        return;
+        return 1;
     }
     while (fgets(line, MAX_LINE_SIZE, fp) && player_count < MAX_PLAYER_COUNT) {
         if (isdigit(line[0]) && line[strlen(line) - 2] == '.') {
@@ -142,4 +141,5 @@ void parse_transfer_list() {
     for (i = 0; i < player_count; i++) {
         print_value_predictions(players[i], current_date);
     }
+    return 0;
 }

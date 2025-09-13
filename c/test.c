@@ -50,6 +50,5 @@ int test_print_value_predictions(void) {
 }
 
 int test_parse_transfer_list(void) {
-    parse_transfer_list();
-    return 0;
+    return parse_transfer_list();
 }
