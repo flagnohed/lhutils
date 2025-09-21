@@ -34,8 +34,8 @@ int test_print_value_predictions(void) {
     Date_t cur_date;
     const char *test_name = "Tester McTester";
 
-    memset(&p, 0, sizeof(p));
-    memcpy(p.name, test_name, sizeof(test_name));
+    memcpy(p.name, test_name, strlen(test_name) + 1);
+    p.name[strlen(test_name)] = '\0';
 
     p.pos = POS_F;
     p.value = 15000000;
