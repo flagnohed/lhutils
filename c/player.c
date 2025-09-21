@@ -68,7 +68,7 @@ static void value_to_str(const unsigned int value, const bool add_parens) {
         pretty_buf[0] = '(';
     }
     /* We want to transform raw_buf for example like this:
-       7500000 -> 7 500 000 kr.  */
+       7500000 -> 7 500 000 kr. @todo: is there a better way of doing this? */
     #pragma GCC diagnostic push
     #pragma GCC diagnostic ignored "-Wstringop-truncation"
     strncat(pretty_buf, raw_buf_ptr, num_starting_digits);
@@ -94,6 +94,8 @@ static void value_to_str(const unsigned int value, const bool add_parens) {
     }
 }
 
+/* Prints name, position, age and value of the given player.
+   If the player is transferlisted, print (starting)bid. */
 void print_player_info(const Player_t *p) {
     value_to_str(p->value, false);
     printf("%s, %s, %u\n", p->name, pos_to_str(p->pos), p->age);
