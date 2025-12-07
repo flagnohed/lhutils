@@ -63,7 +63,8 @@ static void str_to_date(const char *line_ptr, Date_t *date) {
 
 int parse_transfer_list() {
     /* The transfer list can look one of two ways depending on browser.
-       (See transfer_list(_2).txt for comparison) */
+       (See transfer_list(_2).txt for comparison)
+       [2025-12-07] is this still relevant? */
     char line[MAX_LINE_SIZE], start_bid_buf[MAX_BUF_LEN_VALUE_STR], age_buf[3], *line_ptr;
     bool is_parsing = false, next_is_name = false;
     unsigned int player_count = 0;
@@ -143,3 +144,9 @@ int parse_transfer_list() {
     }
     return 0;
 }
+
+int parse_game(void) {
+    printf("parse_game()\n");
+    return 0;
+}
+
