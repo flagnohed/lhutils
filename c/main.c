@@ -23,19 +23,16 @@ static void print_usage(void) {
     printf("\t\tRun all unit tests.\n\n");
     printf("-tl, --transfer-list\n");
     printf("\t\tParse transferlist and output predicted values.\n\n");
-    printf("-g, --game\n");
-    printf("\t\tParse game file and output statistics.\n\n");
+    printf("-g, --game [file_name|all]\n");
+    printf("\t\tParse file_name or all valid files inside input/games and output statistics.\n\n");
 }
 
 int main(int argc, char **argv) {
     /* Parse arguments. */
+    char *game_fname;
     if (argc == 1) {
         print_usage();
         return EXIT_SUCCESS;
-    }
-    if (argc != 2) {
-        print_usage();
-        return EXIT_FAILURE;
     }
     if (strcmp(argv[1], "-h") == 0 || strcmp(argv[1], "--help") == 0) {
         print_usage();
@@ -48,7 +45,11 @@ int main(int argc, char **argv) {
         return parse_transfer_list();
     }
     if (strcmp(argv[1], "-g") == 0 || strcmp(argv[1], "--game") == 0) {
-        return parse_game();
+        if (argc != 3) {
+            print_usage();
+            return EXIT_FAILURE;
+        }
+        return parse_game(argv[2]);
     }
     printf("Unrecognized argument: %s\n", argv[1]);
     print_usage();

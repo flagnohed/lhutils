@@ -31,6 +31,6 @@ typedef struct {
     unsigned int grade;
 }   Team_t;
 
-int parse_game(void);
+int parse_game(const char *fname);
 
 #endif
