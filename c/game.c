@@ -1,7 +1,8 @@
 #include <stdio.h>
 #include "game.h"
 
-#define FNAME_GAME "input/game.txt"
+#define PATH_GAMES_DIR "input/games/"
+#define PATH_GAME_TEST PATH_GAME_TEST "game_test.txt"
 
 /* Translates icetime_distribution to its corresponding icetime string (ABCABC...).
  * The last 5 characters of the returned string are for sudden death. */
