@@ -9,6 +9,7 @@ typedef enum {
     EVENT_SHOT,
     EVENT_PENALTY,
     EVENT_INJURY,
+    EVENT_PULL_GOALIE,
 }   Event_t;
 
 /* Struct containing statistics for each player that participates
@@ -21,7 +22,6 @@ typedef struct {
     uint8_t goals_pp;
     uint8_t goals_bp;
     uint8_t goals_es;
-
 }   GamePlayer_t;
 
 typedef struct {
