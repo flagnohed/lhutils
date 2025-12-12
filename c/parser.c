@@ -147,7 +147,7 @@ int parse_transfer_list() {
 
 /* Translates icetime_distribution to its corresponding icetime string (ABCABC...).
  * The last 5 characters of the returned string are for sudden death. */
-const char *get_icetime_str(unsigned int icetime_distribution) {
+static const char *get_icetime_str(unsigned int icetime_distribution) {
     switch (icetime_distribution) {
         case 343432:
             return "ABCABCABCABCABCABCABCABCABCABCABCABCABCABCABCABCABCABCABCABCABCAB";
