@@ -2,10 +2,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "parser.h"
+#include "transfer.h"
 #include "player.h"
 
-#define FNAME_TRANSFER_LIST "transfer_list.txt"
+#define FNAME_TRANSFER_LIST "./input/transfer_list.txt"
 #define MAX_LINE_SIZE 256
 #define MAX_PLAYER_COUNT 1024
 
@@ -144,31 +144,3 @@ int parse_transfer_list() {
     }
     return 0;
 }
-
-/* Translates icetime_distribution to its corresponding icetime string (ABCABC...).
- * The last 5 characters of the returned string are for sudden death. */
-static const char *get_icetime_str(unsigned int icetime_distribution) {
-    switch (icetime_distribution) {
-        case 343432:
-            return "ABCABCABCABCABCABCABCABCABCABCABCABCABCABCABCABCABCABCABCABCABCAB";
-        case 404020:
-            return "ABABCABABCABABCABABCABABCABABCABABCABABCABABCABABCABABCABABCABABC";
-        case 403525:
-            return "ABABCABABCACABCABABCABABCACABCABABCABABCACABCABABCABABCABABCABABC";
-        case 403030:
-            return "ABCABCABACABCABCABCAABCABCABACABCABCABCAABCABCABACABCABCABCAABCAB";
-        case 453520:
-            return "ABABCACABCABABCABABAABABCACABCABABCABABAABABCACABCABABCABABAABABC";
-        case 454015:
-            return "ABABCABABCABABCABABAABABCABABCABABCABABAABABCABABCABABCABABAABABC";
-        default:
-            printf("Invalid icetime distribution: %d\n", icetime_distribution);
-            return NULL;
-    }
-}
-
-int parse_game(void) {
-    printf("parse_game()\n");
-    return 0;
-}
-

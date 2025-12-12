@@ -1,7 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "parser.h"
+#include "game.h"
+#include "transfer.h"
 #include "test.h"
 
 static int run_tests(void) {

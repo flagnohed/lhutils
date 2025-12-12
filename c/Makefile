@@ -27,7 +27,7 @@ CFLAGS += -Wunreachable-code
 CFLAGS += -Wunused-but-set-parameter
 CFLAGS += -Wwrite-strings
 CC = gcc
-OBJS = build/main.o build/parser.o build/player.o build/test.o
+OBJS = build/game.o build/main.o build/player.o build/test.o build/transfer.o
 lhutils: $(OBJS)
 	$(CC) -o lhutils $(OBJS)
 

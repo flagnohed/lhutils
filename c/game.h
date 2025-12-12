@@ -24,11 +24,13 @@ typedef struct {
 
 }   GamePlayer_t;
 
-typedef enum {
+typedef struct {
     char name[256];  /* TODO: Check Livehockey max team name length. */
     GamePlayer_t players[32];  /* TODO: 32 is probably overkill, maybe change? */
     unsigned int icetime_distribution;  /* Percentages per line, e.g., 343432, 404020, ... */
     unsigned int grade;
 }   Team_t;
+
+int parse_game(void);
 
 #endif
