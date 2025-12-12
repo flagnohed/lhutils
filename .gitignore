@@ -7,3 +7,6 @@
 /lib64
 tags
 pyvenv.cfg
+/c/build/*
+/c/lhutils
+/c/input/*
